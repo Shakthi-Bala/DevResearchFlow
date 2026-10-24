@@ -50,7 +50,8 @@ def main():
             if part.is_symlink(): raise ValueError(f'preserving symlink; cannot install through {part.relative_to(root)}')
         return path
     metadata=target('research/toolkit_version.json')
-    previous=json.loads(metadata.read_text()) if metadata.exists() else {'files':{}}
+    first_install = not metadata.exists()
+    previous=json.loads(metadata.read_text()) if not first_install else {'files':{}}
     if not isinstance(previous,dict) or not isinstance(previous.get('files'),dict):
         raise ValueError('invalid toolkit_version.json: expected a files mapping')
     for name,entry in previous['files'].items():
@@ -92,7 +93,9 @@ def main():
     install('research/WORKFLOW.md',(SOURCE/'README.md').read_bytes())
     install('research/DAILY_USE.md',(SOURCE/'DAILY_USE.md').read_bytes())
     for name,destination in [('brief.md','research/brief.md'),('state.yaml','research/state.yaml'),('question.md','research/questions/Q-001.md')]:
-        install(destination,(SOURCE/'templates'/name).read_bytes(),False)
+        target(destination)  # Keep symlink checks even when starter creation is skipped.
+        if first_install:
+            install(destination,(SOURCE/'templates'/name).read_bytes(),False)
     session=b'# Session notes\n\nWorking notes here are unreviewed. Promote findings through canonical records and applicable review.\n'
     install('research/sessions/README.md',session,False)
     instruction_files=['AGENTS.md']+(['CLAUDE.md'] if args.claude else [])
