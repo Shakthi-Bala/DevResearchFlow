@@ -10,7 +10,10 @@ Seven agent roles · Three independent review stages · Versioned research evide
 
 </div>
 
-![Seven-role research workflow showing planning, engineering, analysis, and three verifier reviews](docs/assets/research-workflow.svg)
+![Animated research workflow: colored outlines follow each active step, with amber highlights for the three verifier reviews](docs/assets/research-workflow.gif)
+
+The outline follows the normal workflow; review findings return work for correction.
+[View the static diagram](docs/assets/research-workflow.svg).
 
 `DevResearchFlow` turns a research question into a sequence of defined tasks, reviewed
 experiments, and evidence-linked conclusions. A coordinator manages specialist
