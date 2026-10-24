@@ -1,0 +1,18 @@
+# graphify: paths to skip when building the graph (.gitignore is honoured too)
+graphify-out/
+third_party/
+vendor/
+node_modules/
+.venv/
+venv/
+envs/
+build/
+dist/
+data/
+datasets/
+outputs/
+logs/
+wandb/
+runs/
+checkpoints/
+docs/media/
