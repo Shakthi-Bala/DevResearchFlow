@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Project state",
+  "type": "object",
+  "required": [
+    "phase",
+    "active_question",
+    "active_tasks",
+    "current_experiment",
+    "blockers",
+    "next_decision"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "phase": {
+      "type": "string",
+      "minLength": 1
+    },
+    "active_question": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^Q-[0-9]{3,}$"
+    },
+    "active_tasks": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^TASK-[0-9]{3,}$"
+      }
+    },
+    "current_experiment": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^EXP-[0-9]{3,}$"
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "next_decision": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

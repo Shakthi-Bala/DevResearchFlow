@@ -5,7 +5,7 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 from check_references import reference_errors
-from records import content_hash,load_records,local_path,parse,sha256
+from records import content_hash,load_records,local_path,parse,sha256,schema_errors
 
 # Explicit workflow transitions; use a new record/version rather than erasing history.
 TRANSITIONS = {
@@ -71,12 +71,18 @@ def policy_errors(root,records):
             if not revision_exists(root,r['code_revision']): report(rid,'run code revision is not a local Git commit')
             snapshot=None
             try:
-                snapshot=parse(local_path(root,r['protocol_snapshot']['path']).read_text())
+                candidate=parse(local_path(root,r['protocol_snapshot']['path']).read_text())
+                findings=schema_errors(candidate,'experiment')
+                if findings:
+                    raise ValueError('; '.join(findings))
+                snapshot=candidate
                 if snapshot.get('id')!=r['experiment'] or snapshot.get('version')!=r['protocol_version']:
                     report(rid,'protocol snapshot ID/version differs from manifest')
                 if content_hash(snapshot,'protocol')!=r['protocol_sha256']:
                     report(rid,'protocol content hash differs from frozen snapshot')
-            except (ValueError,KeyError,OSError) as exc: report(rid,f'invalid protocol snapshot: {exc}')
+            except (ValueError,KeyError,OSError) as exc:
+                snapshot=None
+                report(rid,f'invalid protocol snapshot: {exc}')
             if snapshot:
                 for stage in ('protocol','implementation'):
                     if not any(review_ok(review,r['experiment'],stage,snapshot,True) for review in r['reviews']):
@@ -96,7 +102,7 @@ def policy_errors(root,records):
             if status=='failed' and r['exit_code']==0:
                 report(rid,'failed run cannot have exit code zero')
             if r['started_at'] and r['finished_at']:
-                if datetime.fromisoformat(r['finished_at'].replace('Z','+00:00'))<datetime.fromisoformat(r['started_at'].replace('Z','+00:00')):
+                if datetime.fromisoformat(r['finished_at'].upper().replace('Z','+00:00'))<datetime.fromisoformat(r['started_at'].upper().replace('Z','+00:00')):
                     report(rid,'finish time precedes start time')
         if kind in {'claim','source','observation','hypothesis'}:
             review_type='source' if status=='source_checked' else 'evidence'
@@ -115,22 +121,21 @@ def policy_errors(root,records):
                 report(rid,'consequential change requires recorded PI direction')
             if r['claims'] and not r['reviews']:
                 report(rid,'decision using claims requires review references')
-    # State is coordination data, not a scientific record.
+    # Validate state before looking up references: malformed YAML/types are user errors.
     try:
         state=parse((root/'research/state.yaml').read_text())
-        if set(state)!={'phase','active_question','active_tasks','current_experiment','blockers','next_decision'}:
-            report('state','unexpected/missing state fields')
-        for field,kind in [('active_question','question'),('current_experiment','experiment')]:
-            value=state.get(field)
-            if value is not None and records.get(value,({},None))[0].get('kind')!=kind:
-                report('state',f'{field} must reference a {kind}')
-        if not isinstance(state.get('active_tasks'),list): report('state','active_tasks must be a list')
-        else:
+        findings=schema_errors(state,'state')
+        errors.extend(f'state: {finding}' for finding in findings)
+        if not findings:
+            for field,kind in [('active_question','question'),('current_experiment','experiment')]:
+                value=state[field]
+                if value is not None and records.get(value,({},None))[0].get('kind')!=kind:
+                    report('state',f'{field} must reference a {kind}')
             for task in state['active_tasks']:
-                if not isinstance(task,str) or records.get(task,({},None))[0].get('kind')!='task': report('state',f'invalid task {task!r}')
-        if not isinstance(state.get('blockers'),list) or not isinstance(state.get('next_decision'),str):
-            report('state','blockers must be a list and next_decision must be text')
-    except (ValueError,OSError,TypeError) as exc: report('state',str(exc))
+                if records.get(task,({},None))[0].get('kind')!='task':
+                    report('state',f'invalid task {task!r}')
+    except (ValueError,OSError) as exc:
+        report('state',str(exc))
     return errors
 
 
@@ -139,14 +144,19 @@ def history_errors(root,records,base_ref):
     result=subprocess.run(['git','-C',str(root),'rev-parse','--show-toplevel'],capture_output=True,text=True)
     if result.returncode: return [f'--base-ref {base_ref}: project is not in a Git repository']
     top=Path(result.stdout.strip()).resolve()
-    valid=subprocess.run(['git','-C',str(top),'rev-parse','--verify',f'{base_ref}^{{commit}}'],capture_output=True,text=True)
+    valid=subprocess.run(['git','-C',str(top),'rev-parse','--verify','--end-of-options',f'{base_ref}^{{commit}}'],capture_output=True,text=True)
     if valid.returncode: return [f'invalid --base-ref: {base_ref}']
+    base_ref=valid.stdout.strip()
     for rid,(record,path) in records.items():
         old=subprocess.run(['git','-C',str(top),'show',f'{base_ref}:{path.relative_to(top)}'],capture_output=True,text=True)
         if old.returncode: continue
         try: previous=parse(old.stdout,path.suffix=='.md')
         except ValueError as exc:
             errors.append(f'{rid}: cannot parse baseline: {exc}'); continue
+        findings=schema_errors(previous,record['kind'])
+        if findings:
+            errors.append(f'{rid}: invalid baseline record: {findings[0]}')
+            continue
         before,after=previous.get('status'),record['status']
         if before!=after and after not in TRANSITIONS[record['kind']].get(before,set()):
             errors.append(f'{rid}: forbidden transition {before} -> {after}; record intermediate gates in Git')

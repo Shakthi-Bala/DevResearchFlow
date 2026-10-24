@@ -1,24 +1,26 @@
 #!/usr/bin/env bash
 # graphify-init: set up the Graphify knowledge-graph pipeline in a repo (https://github.com/Graphify-Labs/graphify)
 #
-#   graphify-init [DIR] [--full] [--commit-graph] [--no-claude] [--no-hooks]
+#   graphify-init [DIR] [--full] [--commit-graph] [--claude] [--no-hooks]
 #
 #   DIR             repo to set up (default: current directory)
 #   --full          also run the LLM semantic pass over docs/papers/images (needs ANTHROPIC_API_KEY
 #                   or another backend key; costs tokens). Default is code-only: local tree-sitter, free.
 #   --commit-graph  track graphify-out/ in git (default: gitignored, rebuilt locally by the hooks)
-#   --no-claude     skip CLAUDE.md section + .claude/settings.json PreToolUse hooks
+#   --claude        opt in to Claude Code skill, rules, and PreToolUse hooks
 #   --no-hooks      skip git hooks (post-commit/checkout/merge/rewrite auto-rebuild)
 #
 # Part of dev_setup (install.sh links it into ~/.local/bin). Safe to re-run: existing .graphifyignore is kept, .gitignore entry is only added once.
 set -euo pipefail
 
-DIR=. FULL=0 COMMIT_GRAPH=0 CLAUDE=1 HOOKS=1
-TEMPLATES="$(cd "$(dirname "$(readlink -f "$0")")/../templates" && pwd)"  # dev_setup/templates
+DIR=. FULL=0 COMMIT_GRAPH=0 CLAUDE=0 HOOKS=1
+GRAPHIFY_VERSION=${GRAPHIFY_VERSION:-0.9.95}
+TEMPLATES=$(python3 -c 'import pathlib, sys; print(pathlib.Path(sys.argv[1]).resolve().parent.parent / "templates")' "$0")
 for arg in "$@"; do
   case "$arg" in
     --full) FULL=1 ;;
     --commit-graph) COMMIT_GRAPH=1 ;;
+    --claude) CLAUDE=1 ;;
     --no-claude) CLAUDE=0 ;;
     --no-hooks) HOOKS=0 ;;
     -h|--help) sed -n '2,13p' "$0"; exit 0 ;;
@@ -28,20 +30,39 @@ for arg in "$@"; do
 done
 cd "$DIR"
 echo "[graphify-init] repo: $(pwd)"
+if [ -L .gitignore ] || [ -L .graphifyignore ]; then
+  echo "[graphify-init] refusing to modify symlinked ignore files" >&2
+  exit 1
+fi
 
-# 1. CLI + global Claude Code skill (one-time per machine)
+# 1. CLI and optional global assistant skill (one-time per machine)
 export PATH="$HOME/.local/bin:$PATH"
 if ! command -v graphify >/dev/null; then
   command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
-  uv tool install "graphifyy[mcp]"
+  if [ "$GRAPHIFY_VERSION" = latest ]; then
+    uv tool install --upgrade "graphifyy[mcp]"
+  else
+    uv tool install --upgrade "graphifyy[mcp]==$GRAPHIFY_VERSION"
+  fi
 fi
-[ -d "$HOME/.claude/skills/graphify" ] || graphify install
+if [ "$CLAUDE" = 1 ] && [ ! -d "$HOME/.claude/skills/graphify" ]; then
+  graphify install
+fi
 echo "[graphify-init] $(graphify --version 2>/dev/null | head -1)"
 
 # 2. ignore rules: graphify also honours .gitignore; this skips big non-code dirs that may be tracked
 if [ ! -f .graphifyignore ]; then
   cp "$TEMPLATES/graphifyignore" .graphifyignore
   echo "[graphify-init] wrote .graphifyignore (edit it to taste)"
+fi
+if [ "$COMMIT_GRAPH" = 1 ] && [ -f .gitignore ]; then
+  python3 - <<'PY_IGNORE'
+from pathlib import Path
+path=Path('.gitignore')
+text=path.read_text()
+updated=''.join(line for line in text.splitlines(keepends=True) if line.rstrip('\r\n')!='graphify-out/')
+if updated!=text: path.write_text(updated)
+PY_IGNORE
 fi
 if [ "$COMMIT_GRAPH" = 0 ] && ! grep -qxF "graphify-out/" .gitignore 2>/dev/null; then
   printf '\n# graphify knowledge graph (rebuilt locally by git hooks: graphify-init / graphify hook install)\ngraphify-out/\n' >> .gitignore
@@ -68,9 +89,7 @@ fi
 
 cat <<EOF
 
-[graphify-init] done: AST graph + CLAUDE.md rules + PreToolUse hook + post-commit rebuild.
-  LAST STEP (one time, in Claude Code inside this repo):   /graphify .
-    -> adds docs/README concepts and names the communities (uses session tokens once)
-  Then:  graphify query "how does X work" | graphify explain "SomeClass" | graphify path "A" "B"
+[graphify-init] done: code graph built. Optional integrations follow the selected flags.
+  Next:  graphify query "how does X work" | graphify explain "SomeClass" | graphify path "A" "B"
          graphify benchmark  (token reduction)  | open graphify-out/graph.html
 EOF

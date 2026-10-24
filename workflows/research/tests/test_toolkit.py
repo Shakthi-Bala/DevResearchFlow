@@ -66,25 +66,26 @@ class ToolkitTests(unittest.TestCase):
         (run/'stdout.log').write_text('partial output\n');(run/'stderr.log').write_text('')
         self.save(r);return r
     def test_initial_install_and_validation(self):
-        self.assertEqual(len(list((self.root/'.claude/agents').glob('*.md'))),7)
+        self.assertEqual(len(list((self.root/'.research-toolkit/agents').glob('*.md'))),7)
         self.assertEqual(self.errors(),[])
         metadata=json.loads((self.root/'research/toolkit_version.json').read_text())
         self.assertTrue(metadata['toolkit_revision']);self.assertTrue(metadata['files'])
+        self.assertEqual((self.root/'.research-toolkit/LICENSE').read_bytes(),(REPO/'LICENSE').read_bytes())
     def test_rerun_is_byte_identical(self):
         before={str(p.relative_to(self.root)):p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
         self.init();after={str(p.relative_to(self.root)):p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
         self.assertEqual(before,after)
     def test_update_preserves_custom_agent_and_scientific_records(self):
-        agent=self.root/'.claude/agents/engineer.md';agent.write_text('custom agent\n')
+        agent=self.root/'.research-toolkit/agents/engineer.md';agent.write_text('custom agent\n')
         brief=self.root/'research/brief.md';brief.write_text('custom brief\n')
         self.init('--update');self.assertEqual(agent.read_text(),'custom agent\n');self.assertEqual(brief.read_text(),'custom brief\n')
     def test_update_refreshes_unchanged_owned_files(self):
-        agent=self.root/'.claude/agents/engineer.md';agent.write_text('old installed version\n')
+        agent=self.root/'.research-toolkit/agents/engineer.md';agent.write_text('old installed version\n')
         meta=self.root/'research/toolkit_version.json';data=json.loads(meta.read_text())
-        data['files']['.claude/agents/engineer.md']['sha256']=sha256(agent);meta.write_text(json.dumps(data))
+        data['files']['.research-toolkit/agents/engineer.md']['sha256']=sha256(agent);meta.write_text(json.dumps(data))
         self.init('--update');self.assertEqual(agent.read_bytes(),(TOOLKIT/'agents/engineer.md').read_bytes())
-    def test_existing_claude_content_preserved_once(self):
-        p=self.root/'CLAUDE.md';p.write_text('Existing rules\n');self.init();self.init()
+    def test_existing_agent_instructions_preserved_once(self):
+        p=self.root/'AGENTS.md';p.write_text('Existing rules\n');self.init();self.init()
         self.assertTrue(p.read_text().startswith('Existing rules\n'));self.assertEqual(p.read_text().count('research-workflow:start'),1)
     def test_symlink_escape_rejected(self):
         outside=Path(self.temp.name)/'outside';outside.mkdir()
@@ -166,13 +167,91 @@ class ToolkitTests(unittest.TestCase):
         for script in ['validate_records.py','check_references.py']:
             result=subprocess.run([sys.executable,str(self.root/'.research-toolkit/checks'/script),str(self.root)],capture_output=True,text=True)
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+        hash_script=self.root/'.research-toolkit/checks/record_hash.py'
+        result=subprocess.run([sys.executable,str(hash_script),str(self.root/'research/questions/Q-001.md')],capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr);self.assertEqual(len(result.stdout.strip()),64)
+        result=subprocess.run([sys.executable,str(hash_script),str(self.root/'missing.yaml')],capture_output=True,text=True)
+        self.assertEqual(result.returncode,2);self.assertNotIn('Traceback',result.stderr)
     def test_agent_frontmatter_and_ownership(self):
-        for path in (self.root/'.claude/agents').glob('*.md'):
+        for path in (self.root/'.research-toolkit/agents').glob('*.md'):
             data=parse(path.read_text(),True)
             self.assertEqual(data['name'],path.stem)
             self.assertTrue(data['description']);self.assertTrue(data['tools'])
             self.assertIn('Permitted writing area',path.read_text())
             if path.stem!='coordinator': self.assertNotIn('Agent',data['tools'])
+    def test_default_install_is_agent_neutral(self):
+        self.assertTrue((self.root/'AGENTS.md').is_file())
+        self.assertFalse((self.root/'.claude').exists())
+        self.assertFalse((self.root/'CLAUDE.md').exists())
+    def test_optional_runtime_integration(self):
+        self.init('--claude')
+        self.assertEqual(len(list((self.root/'.claude/agents').glob('*.md'))),7)
+        self.assertTrue((self.root/'CLAUDE.md').is_file())
+    def test_metadata_cannot_reference_outside_project(self):
+        metadata=self.root/'research/toolkit_version.json'
+        data=json.loads(metadata.read_text());data['files']['../outside']={'sha256':'0'*64}
+        metadata.write_text(json.dumps(data))
+        result=self.init('--update',ok=False)
+        self.assertNotEqual(result.returncode,0);self.assertIn('unsafe relative path',result.stderr)
+    def test_invalid_metadata_reports_error(self):
+        (self.root/'research/toolkit_version.json').write_text('[]')
+        result=self.init(ok=False)
+        self.assertNotEqual(result.returncode,0);self.assertNotIn('Traceback',result.stderr)
+    def test_malformed_state_is_reported(self):
+        (self.root/'research/state.yaml').write_text('active_tasks: [unterminated')
+        self.assertTrue(any('invalid YAML' in e for e in self.errors()))
+    def test_state_types_are_checked_before_reference_lookups(self):
+        self.put('research/state.yaml',{'phase':7,'active_question':{'bad':'type'},'active_tasks':[{}],
+                                     'current_experiment':None,'blockers':{},'next_decision':None})
+        self.assertTrue(any('state:' in e for e in self.errors()))
+    def test_malformed_snapshot_does_not_crash(self):
+        r=self.run_record();path=self.root/'runs/RUN-001/protocol.yaml'
+        path.write_text('id: EXP-001\nkind: experiment\nversion: 1\n')
+        r['protocol_snapshot']['sha256']=sha256(path);self.save(r)
+        self.assertTrue(any('invalid protocol snapshot' in e for e in self.errors()))
+    def test_bad_snapshot_yaml_is_reported(self):
+        r=self.run_record();path=self.root/'runs/RUN-001/protocol.yaml';path.write_text('invalid: [')
+        r['protocol_snapshot']['sha256']=sha256(path);self.save(r)
+        self.assertTrue(any('invalid YAML' in e for e in self.errors()))
+    def test_implementation_review_reference_requires_review_kind(self):
+        e=self.experiment();e['required_reviews']['implementation']='Q-001';self.save(e)
+        self.assertTrue(any('wrong record kind' in e for e in self.errors()))
+    def test_review_target_requires_correct_kind(self):
+        h=self.template('hypothesis');self.save(h);self.review('REV-001',h,'protocol')
+        self.assertTrue(any('wrong target kind' in e for e in self.errors()))
+    def test_task_dependencies_require_tasks(self):
+        task=self.template('task');task['dependencies']=['Q-001'];self.save(task)
+        self.assertTrue(any('wrong record kind' in e for e in self.errors()))
+    def test_task_dependency_cycles_are_reported(self):
+        first=self.template('task');second=copy.deepcopy(first)
+        second['id']='TASK-002';first['dependencies']=['TASK-002'];second['dependencies']=['TASK-001']
+        self.save(first);self.save(second)
+        self.assertTrue(any('cyclic task dependency' in e for e in self.errors()))
+    def test_planned_run_does_not_require_execution_artifacts(self):
+        self.save(self.experiment());self.save(self.template('run'))
+        self.assertEqual(self.errors(),[])
+    def test_prestart_cancellation_needs_no_execution_artifacts(self):
+        self.save(self.experiment());r=self.template('run')
+        r.update(status='cancelled',finished_at='2026-10-24T12:00:00Z',failure_reason='Budget withdrawn')
+        self.save(r);self.assertEqual(self.errors(),[])
+    def test_invalid_run_timestamp_is_rejected_by_schema(self):
+        r=self.run_record();r['started_at']='not a timestamp';self.save(r)
+        self.assertTrue(any('date-time' in e for e in self.errors()))
+    def test_baseline_bad_yaml_is_reported(self):
+        self.put('research/hypotheses/HYP-001.yaml',self.template('hypothesis'))
+        path=self.root/'research/hypotheses/HYP-001.yaml';original=path.read_text();path.write_text('invalid: [')
+        for args in [('init','-q'),('add','.'),('-c','user.name=Toolkit Test','-c','user.email=toolkit@example.invalid','commit','-qm','invalid fixture')]:
+            subprocess.run(['git','-C',str(self.root),*args],check=True,capture_output=True)
+        path.write_text(original);records,_=load_records(self.root)
+        self.assertTrue(any('cannot parse baseline' in e for e in history_errors(self.root,records,'HEAD')))
+    def test_non_json_yaml_snapshot_is_reported(self):
+        r=self.run_record();path=self.root/'runs/RUN-001/protocol.yaml'
+        text=path.read_text().replace('project: SET_ME','project: !!binary YQ==')
+        path.write_text(text);r['protocol_snapshot']['sha256']=sha256(path);self.save(r)
+        self.assertTrue(any('JSON-compatible' in e for e in self.errors()))
+    def test_non_string_mapping_keys_are_reported(self):
+        (self.root/'research/state.yaml').write_text('null: value')
+        self.assertTrue(any('mapping keys must be strings' in e for e in self.errors()))
     def test_every_template_satisfies_its_schema(self):
         from jsonschema import Draft202012Validator,FormatChecker
         for path in (TOOLKIT/'templates').glob('*'):

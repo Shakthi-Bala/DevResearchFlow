@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import sys
 from datetime import datetime,timezone
@@ -32,21 +33,31 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('project',nargs='?',default='.')
     parser.add_argument('--update',action='store_true',help='update only unchanged previously installed toolkit files; preserve customizations')
+    parser.add_argument('--claude',action='store_true',help='opt in to Claude Code agent files and project instructions')
     parser.add_argument('--graphify',action='store_true',help='also run graphify-init (installs/builds Graphify and its integrations)')
     args=parser.parse_args()
     root=Path(args.project).expanduser().resolve(); root.mkdir(parents=True,exist_ok=True)
     # No installation writes may traverse a symlink within the target project.
     def target(relative):
-        path=root/relative
+        relative_path=Path(relative)
+        if relative_path.is_absolute() or '..' in relative_path.parts:
+            raise ValueError('installation metadata contains an unsafe relative path')
+        path=root/relative_path
         for part in [path,*path.parents]:
             if part==root: break
             if part.is_symlink(): raise ValueError(f'preserving symlink; cannot install through {part.relative_to(root)}')
         return path
     metadata=target('research/toolkit_version.json')
     previous=json.loads(metadata.read_text()) if metadata.exists() else {'files':{}}
-    files=dict(previous.get('files',{})); changes=[]; preserved=[]
+    if not isinstance(previous,dict) or not isinstance(previous.get('files'),dict):
+        raise ValueError('invalid toolkit_version.json: expected a files mapping')
+    for name,entry in previous['files'].items():
+        target(name)
+        if not isinstance(entry,dict) or not re.fullmatch(r'[0-9a-f]{64}',str(entry.get('sha256',''))):
+            raise ValueError('invalid installed-file checksum in toolkit_version.json')
+    files=dict(previous['files']); changes=[]; preserved=[]
     revision=git('rev-parse','HEAD')
-    dirty=bool(git('status','--porcelain','--','bin/research-init','workflows/research'))
+    dirty=bool(git('status','--porcelain','--','bin/research-init','workflows/research','LICENSE'))
     if metadata.exists() and not args.update:
         print('[research-init] existing installation: preserving files; use --update to refresh unchanged managed files')
     def install(relative,data,managed=True):
@@ -63,20 +74,26 @@ def main():
     for directory in ['src','configs','tests/verification','scripts','analysis','runs']:
         target(directory).mkdir(parents=True,exist_ok=True)
     for path in sorted((SOURCE/'agents').glob('*.md')):
-        install(f'.claude/agents/{path.name}',path.read_bytes())
+        install(f'.research-toolkit/agents/{path.name}',path.read_bytes())
+        if args.claude:
+            install(f'.claude/agents/{path.name}',path.read_bytes())
     for folder in ['schemas','checks','templates']:
         for path in sorted((SOURCE/folder).rglob('*')):
             if path.is_file() and '__pycache__' not in path.parts:
                 install(f'.research-toolkit/{folder}/{path.relative_to(SOURCE/folder)}',path.read_bytes())
     install('.research-toolkit/requirements.txt',(SOURCE/'requirements.txt').read_bytes())
+    install('.research-toolkit/LICENSE',(TOOLKIT/'LICENSE').read_bytes())
     install('research/WORKFLOW.md',(SOURCE/'README.md').read_bytes())
     for name,destination in [('brief.md','research/brief.md'),('state.yaml','research/state.yaml'),('question.md','research/questions/Q-001.md')]:
         install(destination,(SOURCE/'templates'/name).read_bytes(),False)
     session=b'# Session notes\n\nWorking notes here are unreviewed. Promote findings through canonical records and applicable review.\n'
     install('research/sessions/README.md',session,False)
-    claude=target('CLAUDE.md'); original=claude.read_text() if claude.exists() else ''
-    if '<!-- research-workflow:start -->' not in original:
-        claude.write_text(original+('\n\n' if original else '')+BLOCK+'\n');changes.append('CLAUDE.md')
+    instruction_files=['AGENTS.md']+(['CLAUDE.md'] if args.claude else [])
+    for name in instruction_files:
+        instructions=target(name); original=instructions.read_text() if instructions.exists() else ''
+        if '<!-- research-workflow:start -->' not in original:
+            instructions.write_text(original+('\n\n' if original else '')+BLOCK+'\n')
+            changes.append(name)
     ignore=target('.gitignore'); current_ignore=ignore.read_text() if ignore.exists() else ''
     missing=[rule for rule in ['.venv-research/','__pycache__/'] if rule not in current_ignore.splitlines()]
     if missing:
@@ -94,10 +111,12 @@ def main():
     print(f'[research-init] {root}: {len(changes)} files installed/updated; {len(preserved)} existing files preserved')
     for name in preserved: print(f'[research-init] preserved {name}')
     print('[research-init] next: fill research/brief.md and questions/Q-001.md; agree plan and budget with the PI')
-    print('[research-init] start Claude Code here: claude --agent coordinator')
+    print('[research-init] load .research-toolkit/agents/coordinator.md in your preferred AI agent')
     print('[research-init] validate with python .research-toolkit/checks/validate_records.py .')
     if args.graphify:
-        subprocess.run([str(TOOLKIT/'bin/graphify-init'),str(root)],check=True)
+        command=[str(TOOLKIT/'bin/graphify-init'),str(root)]
+        if args.claude: command.append('--claude')
+        subprocess.run(command,check=True)
     return 0
 
 if __name__=='__main__':

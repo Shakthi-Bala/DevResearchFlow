@@ -10,15 +10,17 @@ LINKS = {'references','supersedes','question','hypothesis','planned_tests','supp
          'run','reviews','targets','claims','protocol','implementation','reference'}
 EXPECTED = {'question':{'question'},'hypothesis':{'hypothesis'},'planned_tests':{'experiment'},
             'review_records':{'review'},'runs':{'run'},'experiment':{'experiment'},'run':{'run'},
-            'reviews':{'review'},'claims':{'claim'},'protocol':{'review'}}
+            'reviews':{'review'},'claims':{'claim'},'protocol':{'review'},'implementation':{'review'}}
 
 def reference_errors(root,records):
     errors = []
     for rid,(record,path) in records.items():
         def report(message): errors.append(f'{rid}: {message}')
+        pending_run=(record['kind']=='run' and
+                     (record['status']=='planned' or (record['status']=='cancelled' and record['started_at'] is None)))
         def walk(value,field='',active=False):
             if isinstance(value,dict):
-                if 'path' in value and 'sha256' in value:
+                if 'path' in value and 'sha256' in value and not pending_run:
                     try:
                         file=local_path(root,value['path'])
                         if sha256(file)!=value['sha256'] and not (record['kind']=='claim' and record['status'] in {'needs_review','superseded'}):
@@ -37,14 +39,23 @@ def reference_errors(root,records):
                 elif field in EXPECTED and records[value][0]['kind'] not in EXPECTED[field]:
                     report(f'{field}: wrong record kind for {value}')
         walk(record)
+        if record['kind']=='task':
+            for dependency in record['dependencies']:
+                if dependency in records and records[dependency][0]['kind']!='task':
+                    report(f'dependencies: wrong record kind for {dependency}')
         if record['kind']=='review':
+            kinds={'protocol':{'experiment'},'implementation':{'experiment'},
+                   'source':{'source','claim'},'evidence':{'claim','observation','hypothesis'}}
+            for target in record['targets']:
+                if target in records and records[target][0]['kind'] not in kinds[record['review_type']]:
+                    report(f'{record["review_type"]} review has wrong target kind: {target}')
             if set(record['target_versions'])!=set(record['targets']):
                 report('target_versions must hash exactly the review targets')
             for target,digest in record['target_versions'].items():
                 if target not in records: report(f'missing review target {target}')
                 elif content_hash(records[target][0],record['review_type'])!=digest and record['status']!='superseded':
                     report(f'stale review target {target}; supersede this review and obtain a new review')
-        if record['kind']=='run' and record['status']!='planned':
+        if record['kind']=='run' and not pending_run:
             for value in record['logs'].values():
                 try: local_path(root,value)
                 except ValueError as exc: report(str(exc))
@@ -55,6 +66,18 @@ def reference_errors(root,records):
         for location in locations:
             try: local_path(root,location)
             except ValueError as exc: report(str(exc))
+    visiting,visited=set(),set()
+    def visit(task_id):
+        if task_id in visiting:
+            errors.append(f'{task_id}: cyclic task dependency')
+            return
+        if task_id in visited: return
+        visiting.add(task_id)
+        for dependency in records[task_id][0]['dependencies']:
+            if dependency in records and records[dependency][0]['kind']=='task': visit(dependency)
+        visiting.remove(task_id);visited.add(task_id)
+    for task_id,(record,_) in records.items():
+        if record['kind']=='task': visit(task_id)
     return errors
 
 def main():

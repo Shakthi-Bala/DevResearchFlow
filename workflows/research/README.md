@@ -39,7 +39,7 @@ Fill `research/brief.md` and `research/questions/Q-001.md`. Their initial draft
 placeholders are not an agreed research plan.
 
 Open the project in your preferred AI agent. Load the coordinator contract from
-`workflows/research/agents/coordinator.md` in the toolkit checkout. Load the other
+`.research-toolkit/agents/coordinator.md` in your project. Load the other
 six contracts from the same folder when assigning specialist tasks. Map the
 runtime-specific frontmatter, tool names, and delegation mechanism to your own
 agent environment; the Markdown bodies define the reusable research contracts.
@@ -49,11 +49,11 @@ and pass self-contained task records between them. Keep the independent reviewer
 in a separate context from the implementation or conclusion it evaluates. Models
 and permission settings are controlled by your chosen environment.
 
-The initializer currently copies role definitions and a project instruction block
-using one runtime's conventions. Those convenience integrations do not constitute
-adapters for every agent. For other runtimes, register the original role contracts
-through their own instruction system. Research records and Python checks remain
-shared across environments.
+The default installation copies the seven contracts to `.research-toolkit/agents/`
+and appends a workflow block to `AGENTS.md` while preserving existing instructions.
+Register these versioned copies through your agent's own instruction system.
+Runtime-specific convenience integrations are opt-in; inspect `research-init --help`
+for available options. Research records and Python checks are shared across environments.
 
 ## Controlled loop
 
@@ -113,7 +113,8 @@ results, and known deviations.
 ## Installed project layout
 
 ```text
-.research-toolkit/       copied schemas, templates, checks, requirements
+.research-toolkit/       copied agents, schemas, templates, checks, requirements
+AGENTS.md                shared workflow block; existing instructions retained
 .gitignore               local validation environment and Python caches ignored
 research/
   WORKFLOW.md            this operating procedure
@@ -134,9 +135,10 @@ src/ configs/ scripts/ analysis/ tests/verification/
 runs/RUN-001/            manifest.yaml and actual execution evidence
 ```
 
-The initializer also writes runtime-specific agent integration files; inspect
-`bin/research-init` for exact paths. Reusable role contracts are available in
-`workflows/research/agents/` in the toolkit checkout.
+Optional runtime-specific integrations are available through explicit flags;
+inspect `bin/research-init --help`. Default role contracts are project-local in
+`.research-toolkit/agents/`; their source is `workflows/research/agents/` in the
+toolkit checkout. Existing integration files from earlier releases are preserved.
 
 The initializer creates directories and the initial question, brief, and state.
 It does not fabricate source notes, hypotheses, experiments, reviews, or runs.
@@ -155,7 +157,9 @@ method. Source inspection, numerical checks, implementation review, and independ
 reproduction establish different properties. Failed, cancelled, and inconclusive
 attempts remain discoverable. Supersede rather than erase corrected conclusions.
 
-Each actual execution gets a new run directory and manifest. Persist evidence
+Planned runs and runs cancelled before starting do not require execution artifacts.
+Record the cancellation time and reason. Each actual execution gets a new run
+directory and manifest. Persist evidence
 immediately, even if validation fails. Never withhold a failed/interrupted run
 until a review or schema check passes. Capture:
 
@@ -257,3 +261,6 @@ mixed revisions remain visible. Existing projects are never silently committed.
 Run the validator and commit accepted project changes yourself or through the
 coordinator. Keep raw artifacts in appropriate storage with stable references and
 checksums; choose project-specific ignore rules rather than ignoring all runs.
+
+After updating a project, reinstall `.research-toolkit/requirements.txt` into its
+validation environment so optional format checks remain available.

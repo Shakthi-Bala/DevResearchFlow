@@ -18,8 +18,8 @@ def mapping(loader, node, deep=False):
     result = {}
     for key_node, value_node in node.value:
         key = loader.construct_object(key_node, deep=deep)
-        if not isinstance(key, (str, int, float, bool, type(None))):
-            raise ValueError('record keys must be scalar')
+        if not isinstance(key,str):
+            raise ValueError('record mapping keys must be strings')
         if key in result:
             raise ValueError(f'duplicate key: {key}')
         result[key] = loader.construct_object(value_node, deep=deep)
@@ -39,9 +39,16 @@ def parse(text, markdown=False):
         except ValueError as exc:
             raise ValueError('frontmatter has no closing ---') from exc
         text = '\n'.join(lines[1:end])
-    value = yaml.load(text, Loader=RecordLoader)
+    try:
+        value = yaml.load(text, Loader=RecordLoader)
+    except (yaml.YAMLError,RecursionError) as exc:
+        raise ValueError(f'invalid YAML: {exc}') from exc
     if not isinstance(value, dict):
         raise ValueError('record must be a mapping')
+    try:
+        json.dumps(value,allow_nan=False)
+    except (TypeError,ValueError,RecursionError) as exc:
+        raise ValueError('record must contain finite, JSON-compatible values without circular references') from exc
     return value
 
 def sha256(path):
@@ -71,9 +78,16 @@ def local_path(root, value):
         raise ValueError(f'missing file: {value}')
     return target
 
+def schema_errors(record, kind):
+    path=Path(__file__).resolve().parent.parent/'schemas'/f'{kind}.schema.json'
+    schema=json.loads(path.read_text())
+    validator=Draft202012Validator(schema,format_checker=FormatChecker())
+    return [f'{".".join(map(str,e.path)) or "record"}: {e.message}'
+            for e in sorted(validator.iter_errors(record),key=lambda e:str(list(e.path)))]
+
+
 def load_records(root):
     records, errors, candidates = {}, [], []
-    schemas = Path(__file__).resolve().parent.parent/'schemas'
     for folder, kind in FOLDERS.items():
         for path in sorted((root/'research'/folder).glob('*')):
             if path.suffix in {'.md','.yaml','.yml','.json'} and path.name != 'README.md':
@@ -83,12 +97,10 @@ def load_records(root):
         label = str(path.relative_to(root))
         try:
             record = parse(path.read_text(),path.suffix == '.md')
-            schema = json.loads((schemas/f'{kind}.schema.json').read_text())
-            findings = sorted(Draft202012Validator(schema,format_checker=FormatChecker()).iter_errors(record),key=lambda e:str(list(e.path)))
+            findings = schema_errors(record,kind)
             if findings:
-                errors.extend(f'{label}: {".".join(map(str,e.path)) or "record"}: {e.message}' for e in findings)
+                errors.extend(f'{label}: {finding}' for finding in findings)
                 continue
-            json.dumps(record,allow_nan=False)
             if record['id'] != expected_id:
                 raise ValueError(f'ID {record["id"]} does not match filename/run directory {expected_id}')
             if record['id'] in records:

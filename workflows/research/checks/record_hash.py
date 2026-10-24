@@ -8,4 +8,7 @@ parser.add_argument('record')
 parser.add_argument('--review-type',choices=['protocol','implementation','evidence','source'],default='evidence')
 args=parser.parse_args()
 path=Path(args.record)
-print(content_hash(parse(path.read_text(),path.suffix=='.md'),args.review_type))
+try:
+    print(content_hash(parse(path.read_text(),path.suffix=='.md'),args.review_type))
+except (ValueError,OSError,KeyError,TypeError) as exc:
+    parser.error(str(exc))

@@ -70,7 +70,8 @@ remain the evidence to inspect.
 
 ## Quick start
 
-Requires **Python 3.10+**, **Git**, and **an AI agent of your choice**. Role
+Requires **Python 3.10+**, **Git**, and **an AI agent of your choice**. The Bash
+setup scripts target Unix-like systems; use WSL on Windows. Role
 instructions and research records are reusable across agents; map role loading,
 tool access, and delegation to your chosen runtime.
 
@@ -108,7 +109,7 @@ preserved. Experiments start only after you define the question and agree a plan
 ### 3. Give your AI agent the coordinator role
 
 Open your project in your preferred AI agent. Load the coordinator instructions
-from `~/dev_setup/workflows/research/agents/coordinator.md`, using your agent's
+from `.research-toolkit/agents/coordinator.md` in your project, using your agent's
 instruction or context-loading mechanism. The other six role contracts are in
 the same folder. Adapt runtime-specific frontmatter and tool names as needed;
 the Markdown bodies define the research responsibilities.
@@ -133,10 +134,10 @@ agent cannot delegate, assign the roles across separate sessions and pass the
 versioned task records between them. Keep verification in a separate reviewer
 context from the work being evaluated.
 
-The current initializer also writes integration files using a particular agent's
-folder conventions. Other runtimes should load the reusable role contracts above
-and register them through their own instruction system; automatic adapters for
-every runtime are not included.
+The initializer copies all seven contracts into `.research-toolkit/agents/` and
+adds a workflow block to `AGENTS.md`, preserving existing instructions. Load the
+contracts through your agent's own instruction system. Additional runtime-specific
+integrations are opt-in; inspect `research-init --help` for available options.
 
 ## The seven roles
 
@@ -167,9 +168,9 @@ as scientific support.
 
 ### Verification
 
-The integration suite contains **26 tests** covering initialization, customization
-preservation, stale reviews, broken references, corrupted artifacts, run history,
-and installed validation commands.
+The integration suite contains **52 tests** covering initialization, customization
+preservation, stale reviews, broken references, malformed inputs, corrupted
+artifacts, run history, installed check commands, and setup-script behavior.
 
 With the validation dependencies available:
 
@@ -177,7 +178,7 @@ With the validation dependencies available:
 python3 -m unittest discover -s workflows/research/tests -v
 ```
 
-[Inspect the test suite](workflows/research/tests/test_toolkit.py) ·
+[Inspect the test suite](workflows/research/tests/) ·
 [Inspect the validation tools](workflows/research/checks/)
 
 ## Everyday use
@@ -203,7 +204,8 @@ Also compare allowed status changes and run history against the latest commit:
 
 ```text
 my_research_project/
-├── .research-toolkit/     Schemas, templates, and validation tools
+├── AGENTS.md              Shared workflow instructions
+├── .research-toolkit/     Role contracts, schemas, templates, and checks
 ├── research/
 │   ├── brief.md           Question, constraints, budget
 │   ├── state.yaml         Active work, blockers, next decision
@@ -220,16 +222,16 @@ my_research_project/
 └── graphify-out/          Optional generated code index
 ```
 
-The reusable role contracts live in `workflows/research/agents/` in this toolkit.
-The initializer also creates agent integration files, task, question, and session
-folders, configurations, scripts, and a verification-test directory. See the [full project layout](workflows/research/README.md#installed-project-layout).
+The source role contracts live in `workflows/research/agents/` in this toolkit;
+projects receive versioned copies in `.research-toolkit/agents/`. The initializer
+also creates task, question, and session folders, configurations, scripts, and a
+verification-test directory. See the [full project layout](workflows/research/README.md#installed-project-layout).
 
 ## Optional: Graphify code navigation
 
 Graphify provides a code-navigation CLI that any agent with terminal access can
 use. The machine installer installs `uv`, the pinned Graphify CLI, and command
-shortcuts. It also writes tool-specific assistant integrations; inspect `install.sh`
-if you want to manage those separately.
+shortcuts. Assistant-specific integrations are opt-in; see `./install.sh --help`.
 
 ```bash
 cd ~/dev_setup
@@ -260,6 +262,8 @@ cd ~/dev_setup
 git switch main
 git pull --ff-only
 ./bin/research-init ~/my_research_project --update
+~/my_research_project/.venv-research/bin/python -m pip install \
+  -r ~/my_research_project/.research-toolkit/requirements.txt
 ```
 
 Unchanged managed files are refreshed; local customizations and scientific
@@ -278,3 +282,8 @@ substance of the evidence.
 
 For record formats, review dispositions, provenance rules, and reproducibility
 details, read the [research operating guide](workflows/research/README.md).
+
+## License
+
+[MIT](LICENSE). See the [release review](docs/release-review.md) for validation
+results and the boundaries of the public-release check.
