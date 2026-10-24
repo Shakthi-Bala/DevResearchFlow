@@ -55,6 +55,38 @@ Register these versioned copies through your agent's own instruction system.
 Runtime-specific convenience integrations are opt-in; inspect `research-init --help`
 for available options. Research records and Python checks are shared across environments.
 
+## Shared agent rules
+
+These rules apply to all seven role contracts. Load this section with the assigned
+role; role files contain only their writing area, checklist and completion contract.
+
+- Read the brief and task contract. Work within the PI's agreed scope and budget;
+  record consequential direction changes. Task instructions assign ownership,
+  not filesystem permissions.
+- Modify only assigned paths within your role's area. One writer owns each file;
+  route corrections through the coordinator rather than editing another writer's evidence.
+- Research records and raw artifacts are authoritative. Session notes are unreviewed.
+  Use optional Graphify only to locate code, inspect source at its recorded revision,
+  and broaden the search when retrieval is empty. Never edit its generated graph as research memory.
+- Never fabricate sources, execution outcomes, commands, review completion or evidence.
+  Preserve failures, counterevidence, uncertainty and superseded history. Scope results
+  to the relevant data, hardware, calibration, protocol and code versions.
+- At handoff return task ID, input IDs/versions, output paths/IDs, evidence, actual
+  checks/results, deviations, uncertainty/blockers and next dependency. Run structural
+  checks on changed records without delaying preservation of failed/interrupted runs.
+- Completion requires the assigned acceptance criteria and an evidence-linked handoff.
+  Otherwise identify the unmet criterion and smallest next action. Structural validity
+  and agent agreement do not establish scientific support.
+- Only the coordinator or delegated single Git writer commits changes. Push only when
+  the user authorizes it.
+
+For verification, prefer a different model and always start a fresh reviewer context
+that has not authored the implementation or conclusion. Give the reviewer the question,
+protocol, code and raw evidence before author summaries. Ask it to independently
+recompute critical numbers and report actual commands, disagreements and limits.
+Model diversity reduces some shared blind spots; it does not guarantee independence
+or correctness. Runtime/model selection remains the user's responsibility.
+
 ## Controlled loop
 
 ```mermaid
@@ -214,8 +246,9 @@ Checks cover schemas/allowed statuses, duplicate IDs/keys, typed references,
 local artifact existence/checksums, current review prerequisites, run provenance,
 and state references. `--base-ref` checks allowed transitions against that commit;
 record intermediate gates in Git before later transitions. Without a baseline,
-historical transition validation is not claimed. This is a manual acceptance
-command, not an installed Git hook or enforced orchestration service.
+historical transition validation is not claimed. Validation can run manually or through the optional staged-tree hook and project CI;
+see [automation and helpers](DAILY_USE.md). These checks do not enforce
+experiment execution or grant scientific approval.
 
 Claims list checksummed local `dependencies` (code, config, data manifests,
 calibration, or protocols). A changed dependency fails validation until the claim
@@ -264,3 +297,9 @@ checksums; choose project-specific ignore rules rather than ignoring all runs.
 
 After updating a project, reinstall `.research-toolkit/requirements.txt` into its
 validation environment so optional format checks remain available.
+
+## Examples and daily use
+
+The toolkit checkout contains a runnable toy ablation at `examples/toy-ablation/`.
+Use the [record helpers and optional validation automation](DAILY_USE.md)
+to reduce bookkeeping while retaining review requirements.

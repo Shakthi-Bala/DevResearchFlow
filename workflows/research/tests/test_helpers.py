@@ -119,4 +119,3 @@ class HelperTests(ToolkitFixture):
     def snapshot(self,*args):
         return subprocess.run([sys.executable,str(self.root/'.research-toolkit/checks/validate_snapshot.py'),str(self.root),
                                *(args or ('--staged',))],capture_output=True,text=True)
-

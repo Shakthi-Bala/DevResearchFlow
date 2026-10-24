@@ -36,3 +36,16 @@ Credential screening and dependency audits identify known patterns and reported
 vulnerabilities; they do not constitute a security certification. Scientific
 conclusions require review of the underlying sources, implementation, and run
 evidence in addition to structural validation.
+
+## Usability follow-up
+
+The follow-up on 2026-10-24 passed all **63 local regression tests on Python 3.13.5**.
+Coverage now includes optional-format-package absence, record helper safety,
+staged-tree validation, an actual rejecting pre-commit hook, staged artifact
+corruption, and a complete generated example with per-commit history checks.
+Shell syntax, local documentation links, and whitespace checks also passed.
+These local results do not confirm the subsequent GitHub-hosted CI runs.
+
+The example executes real local commands but labels every scripted review as a
+synthetic fixture. A real thesis pilot remains future work. A separate lite policy
+is deferred pending experience; existing exploratory mode retains review gates.
