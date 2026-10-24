@@ -1,6 +1,6 @@
 <div align="center">
 
-# dev_setup
+# DevResearchFlow
 
 ### A structured research workflow for any AI agent
 
@@ -12,7 +12,7 @@ Seven agent roles · Three independent review stages · Versioned research evide
 
 ![Seven-role research workflow showing planning, engineering, analysis, and three verifier reviews](docs/assets/research-workflow.svg)
 
-`dev_setup` turns a research question into a sequence of defined tasks, reviewed
+`DevResearchFlow` turns a research question into a sequence of defined tasks, reviewed
 experiments, and evidence-linked conclusions. A coordinator manages specialist
 agents; an independent verifier checks the experiment protocol, implementation,
 and final interpretation.
@@ -41,12 +41,12 @@ This project makes those records part of the workflow:
 
 ## Architecture
 
-The reusable toolkit lives in `dev_setup`. Scientific records belong to the
+The reusable toolkit lives in `DevResearchFlow`. Scientific records belong to the
 project where the research happens.
 
 ```mermaid
 flowchart TB
-    T["dev_setup toolkit<br/>Agent contracts · Schemas · Templates · Checks"]
+    T["DevResearchFlow toolkit<br/>Agent contracts · Schemas · Templates · Checks"]
     T -->|research-init: versioned copies| P
     subgraph P["Your research project"]
         C["Coordinator<br/>Scope, task ownership, handoffs"]
@@ -78,10 +78,10 @@ tool access, and delegation to your chosen runtime.
 ### 1. Get the toolkit
 
 ```bash
-git clone --branch main https://github.com/Shakthi-Bala/dev_setup.git ~/dev_setup
+git clone --branch main https://github.com/Shakthi-Bala/DevResearchFlow.git ~/DevResearchFlow
 ```
 
-Already cloned it? Use your existing checkout. Replace `~/dev_setup` below with
+Already cloned it? Use your existing checkout. Replace `~/DevResearchFlow` below with
 its actual location if different.
 
 ### 2. Prepare your project
@@ -97,7 +97,7 @@ git init
 For an existing project, open its folder instead. Then install the workflow:
 
 ```bash
-~/dev_setup/bin/research-init .
+~/DevResearchFlow/bin/research-init .
 python3 -m venv .venv-research
 .venv-research/bin/python -m pip install -r .research-toolkit/requirements.txt
 ```
@@ -234,7 +234,7 @@ use. The machine installer installs `uv`, the pinned Graphify CLI, and command
 shortcuts. Assistant-specific integrations are opt-in; see `./install.sh --help`.
 
 ```bash
-cd ~/dev_setup
+cd ~/DevResearchFlow
 ./install.sh
 export PATH="$HOME/.local/bin:$PATH"
 ```
@@ -258,7 +258,7 @@ separate from the shared research process and Graphify CLI.
 ## Update an existing installation
 
 ```bash
-cd ~/dev_setup
+cd ~/DevResearchFlow
 git switch main
 git pull --ff-only
 ./bin/research-init ~/my_research_project --update

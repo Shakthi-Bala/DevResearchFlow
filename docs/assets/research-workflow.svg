@@ -19,7 +19,7 @@
   </defs>
   <rect width="1200" height="650" rx="24" fill="url(#background)"/>
   <rect x="40" y="37" width="46" height="4" rx="2" fill="url(#accent)"/>
-  <text x="40" y="70" class="eyebrow">DEV_SETUP / RESEARCH WORKFLOW</text>
+  <text x="40" y="70" class="eyebrow">DEVRESEARCHFLOW / RESEARCH WORKFLOW</text>
   <text x="40" y="117" class="heading">Seven roles. Three reviews. One evidence trail.</text>
   <text x="40" y="151" class="subtitle">You set the question and budget. The coordinator manages the handoffs.</text>
 

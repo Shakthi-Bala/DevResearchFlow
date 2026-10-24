@@ -14,7 +14,7 @@ the user authorizes it.
 
 ## Install and start
 
-From dev_setup, run `./bin/research-init /path/to/project`. After `./install.sh`,
+From the toolkit checkout, run `./bin/research-init /path/to/project`. After `./install.sh`,
 `research-init /path/to/project` is available through `~/.local/bin`.
 Initialization requires Python 3.10+ and Git for revision recording. It performs
 no network access or package installation. To also opt into the existing Graphify
@@ -244,7 +244,7 @@ scientific records into the code graph.
 
 ## Toolkit verification
 
-From dev_setup, run `python3 -m unittest discover -s workflows/research/tests -v`
+From the toolkit checkout, run `python3 -m unittest discover -s workflows/research/tests -v`
 with the validation dependencies installed. Tests exercise safe initialization,
 customization preservation, stale evidence, review gates, run history, and the
 installed check commands. They do not launch model sessions or experiments.
