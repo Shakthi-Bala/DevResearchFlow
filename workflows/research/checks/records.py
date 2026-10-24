@@ -1,12 +1,39 @@
 """Shared strict loading and provenance helpers; no scientific inference."""
 import hashlib
 import json
+import re
+from datetime import date, datetime
 from pathlib import Path
 try:
     import yaml
     from jsonschema import Draft202012Validator, FormatChecker
 except ImportError as exc:
     raise SystemExit('Install .research-toolkit/requirements.txt (or workflows/research/requirements.txt) in a virtual environment.') from exc
+
+# Register the formats used by our schemas explicitly. jsonschema otherwise
+# silently accepts unknown formats when an optional validator is unavailable.
+FORMATS = FormatChecker()
+
+@FORMATS.checks('date', raises=ValueError)
+def valid_date(value):
+    if not isinstance(value, str):
+        return True
+    if not re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}', value):
+        return False
+    date.fromisoformat(value)
+    return True
+
+@FORMATS.checks('date-time', raises=ValueError)
+def valid_datetime(value):
+    if not isinstance(value, str):
+        return True
+    if not re.fullmatch(r'[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt][0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:[Zz]|[+-][0-9]{2}:[0-9]{2})', value):
+        return False
+    # Reject invalid offset minutes/hours, which fromisoformat can normalize.
+    if value[-1] not in 'Zz' and (int(value[-5:-3]) > 23 or int(value[-2:]) > 59):
+        return False
+    datetime.fromisoformat(value.upper().replace('Z', '+00:00'))
+    return True
 
 class RecordLoader(yaml.SafeLoader):
     pass
@@ -81,7 +108,7 @@ def local_path(root, value):
 def schema_errors(record, kind):
     path=Path(__file__).resolve().parent.parent/'schemas'/f'{kind}.schema.json'
     schema=json.loads(path.read_text())
-    validator=Draft202012Validator(schema,format_checker=FormatChecker())
+    validator=Draft202012Validator(schema,format_checker=FORMATS)
     return [f'{".".join(map(str,e.path)) or "record"}: {e.message}'
             for e in sorted(validator.iter_errors(record),key=lambda e:str(list(e.path)))]
 
