@@ -1,0 +1,16 @@
+id: CLM-001
+kind: claim
+status: unreviewed
+origin: agent_generated
+scope:
+  project: SET_ME
+references: []
+version: 1
+statement: SET_ME
+assumptions: []
+supporting_evidence: []
+contradicting_evidence: []
+review_records: []
+dependencies: []
+limitations: []
+check_methods: []

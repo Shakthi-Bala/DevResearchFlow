@@ -1,0 +1,22 @@
+id: OBS-001
+kind: observation
+status: unreviewed
+origin: agent_generated
+scope:
+  project: SET_ME
+references: []
+version: 1
+run: RUN-001
+measurement: SET_ME
+units: SET_ME
+value: null
+uncertainty: SET_ME
+raw_artifacts:
+- path: runs/RUN-001/metrics.json
+  sha256: '0000000000000000000000000000000000000000000000000000000000000000'
+analysis:
+  file: analysis/SET_ME.py
+  commit: '0000000000000000000000000000000000000000'
+  command:
+  - SET_ME
+review_records: []

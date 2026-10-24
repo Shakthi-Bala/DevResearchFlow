@@ -1,0 +1,22 @@
+id: TASK-001
+kind: task
+status: ready
+origin: agent_generated
+scope:
+  project: SET_ME
+references: []
+version: 1
+objective: SET_ME
+owner: coordinator
+inputs: []
+allowed_writes: []
+budget:
+  limits: No execution authorized until the PI agrees a budget.
+expected_outputs:
+- SET_ME
+acceptance_criteria:
+- SET_ME
+dependencies: []
+outputs: []
+uncertainties: []
+blockers: []

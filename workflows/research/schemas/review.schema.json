@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dev-setup.local/research/review.schema.json",
+  "title": "review",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "status",
+    "origin",
+    "scope",
+    "references",
+    "version",
+    "review_type",
+    "reviewer",
+    "targets",
+    "target_versions",
+    "disposition",
+    "checks_performed",
+    "findings",
+    "not_verified"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^REV-[0-9]{3,}$"
+    },
+    "kind": {
+      "const": "review"
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "completed",
+        "superseded"
+      ]
+    },
+    "origin": {
+      "enum": [
+        "human",
+        "agent_generated",
+        "measured",
+        "imported"
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "review_type": {
+      "enum": [
+        "protocol",
+        "implementation",
+        "evidence",
+        "source"
+      ]
+    },
+    "reviewer": {
+      "const": "verifier"
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "target_versions": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "disposition": {
+      "enum": [
+        "pending",
+        "supported_within_scope",
+        "correction_required",
+        "insufficient_evidence",
+        "unable_to_reproduce",
+        "unresolved_disagreement"
+      ]
+    },
+    "checks_performed": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "severity",
+          "evidence",
+          "correction",
+          "resolved"
+        ],
+        "properties": {
+          "severity": {
+            "enum": [
+              "blocking",
+              "major",
+              "minor"
+            ]
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1
+          },
+          "correction": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resolved": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "not_verified": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "additionalProperties": false
+}

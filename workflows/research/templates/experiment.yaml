@@ -1,0 +1,40 @@
+id: EXP-001
+kind: experiment
+status: draft
+origin: agent_generated
+scope:
+  project: SET_ME
+references: []
+version: 1
+hypothesis: HYP-001
+mode: exploratory
+prediction: SET_ME
+baselines:
+- SET_ME
+controlled_variables: []
+ablations: []
+metrics:
+- name: SET_ME
+  units: SET_ME
+  aggregation: SET_ME
+data_separation: SET_ME
+repetitions: SET_ME
+failure_criteria:
+- SET_ME
+budget: SET_ME
+interpretation_limits: []
+measurement_protocol:
+  conditions: SET_ME
+implementation:
+  file: src/SET_ME.py
+  symbol: SET_ME
+  commit: null
+  patch: null
+configuration:
+  file: configs/SET_ME.yaml
+  sha256: null
+required_reviews:
+  protocol: null
+  implementation: null
+changes: []
+runs: []

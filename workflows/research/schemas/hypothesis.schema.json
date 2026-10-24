@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dev-setup.local/research/hypothesis.schema.json",
+  "title": "hypothesis",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "status",
+    "origin",
+    "scope",
+    "references",
+    "version",
+    "question",
+    "statement",
+    "assumptions",
+    "alternatives",
+    "falsification_conditions",
+    "planned_tests",
+    "supporting_evidence",
+    "contradicting_evidence",
+    "review_records",
+    "open_questions"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^HYP-[0-9]{3,}$"
+    },
+    "kind": {
+      "const": "hypothesis"
+    },
+    "status": {
+      "enum": [
+        "proposed",
+        "under_test",
+        "supported_within_scope",
+        "contradicted",
+        "unresolved",
+        "superseded"
+      ]
+    },
+    "origin": {
+      "enum": [
+        "human",
+        "agent_generated",
+        "measured",
+        "imported"
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "question": {
+      "type": "string",
+      "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+    },
+    "statement": {
+      "type": "string",
+      "minLength": 1
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "alternatives": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "falsification_conditions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "planned_tests": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "supporting_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "contradicting_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "review_records": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "additionalProperties": false
+}

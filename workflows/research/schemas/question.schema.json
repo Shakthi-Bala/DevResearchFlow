@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dev-setup.local/research/question.schema.json",
+  "title": "question",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "status",
+    "origin",
+    "scope",
+    "references",
+    "version",
+    "question",
+    "observable_outcome",
+    "constraints"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^Q-[0-9]{3,}$"
+    },
+    "kind": {
+      "const": "question"
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "active",
+        "resolved",
+        "unresolved"
+      ]
+    },
+    "origin": {
+      "enum": [
+        "human",
+        "agent_generated",
+        "measured",
+        "imported"
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "question": {
+      "type": "string",
+      "minLength": 1
+    },
+    "observable_outcome": {
+      "type": "string",
+      "minLength": 1
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "additionalProperties": false
+}

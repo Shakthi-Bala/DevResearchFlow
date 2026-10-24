@@ -1,0 +1,41 @@
+id: RUN-001
+kind: run
+status: planned
+origin: agent_generated
+scope:
+  project: SET_ME
+references: []
+version: 1
+experiment: EXP-001
+protocol_version: 1
+protocol_sha256: '0000000000000000000000000000000000000000000000000000000000000000'
+code_revision: '0000000000000000000000000000000000000000'
+patch: null
+command:
+- SET_ME
+seed: null
+dataset:
+  version: SET_ME
+  manifest_sha256: '0000000000000000000000000000000000000000000000000000000000000000'
+configuration:
+  path: runs/RUN-001/config_resolved.yaml
+  sha256: '0000000000000000000000000000000000000000000000000000000000000000'
+environment:
+  path: runs/RUN-001/environment.txt
+  sha256: '0000000000000000000000000000000000000000000000000000000000000000'
+hardware:
+  device: SET_ME
+started_at: null
+finished_at: null
+exit_code: null
+logs:
+  stdout: runs/RUN-001/stdout.log
+  stderr: runs/RUN-001/stderr.log
+artifacts: []
+metrics: null
+reviews: []
+deviations: []
+failure_reason: null
+protocol_snapshot:
+  path: runs/RUN-001/protocol.yaml
+  sha256: '0000000000000000000000000000000000000000000000000000000000000000'
