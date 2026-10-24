@@ -11,7 +11,7 @@ REPO=Path(__file__).resolve().parents[3]
 class SetupScriptTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
-        self.root=Path(self.temp.name);self.project=self.root/'project with spaces';self.project.mkdir()
+        self.root=Path(self.temp.name).resolve();self.project=self.root/'project with spaces';self.project.mkdir()
         self.home=self.root/'home';self.home.mkdir()
         self.mock=self.root/'mock-bin';self.mock.mkdir()
         self.log=self.root/'commands.log'

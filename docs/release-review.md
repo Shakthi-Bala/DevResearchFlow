@@ -21,7 +21,8 @@ it does not change the repository's visibility.
 ## Checks performed
 
 - All 52 regression tests passed in isolated dependency environments on Linux,
-  using Python 3.10 and 3.13.
+  using Python 3.10 and 3.13. A Linux run with symlinked temporary directories
+  also checked the path-alias behavior used by macOS test fixtures.
 - The actual pinned Graphify 0.9.95 CLI extracted a small code graph and generated
   the HTML graph and report without an LLM call.
 - `pip-audit` reported no known vulnerabilities for the resolved validation

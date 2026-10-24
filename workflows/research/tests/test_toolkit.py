@@ -17,7 +17,7 @@ from check_references import reference_errors
 class ToolkitTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
-        self.root=Path(self.temp.name)/'project with spaces'
+        self.root=(Path(self.temp.name)/'project with spaces').resolve()
         self.init()
     def init(self,*args,ok=True):
         result=subprocess.run([sys.executable,str(REPO/'bin/research-init'),str(self.root),*args],capture_output=True,text=True)
