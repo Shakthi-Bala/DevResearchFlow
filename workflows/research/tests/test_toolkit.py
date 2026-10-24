@@ -89,6 +89,16 @@ class ToolkitTests(ToolkitFixture):
     def test_existing_agent_instructions_preserved_once(self):
         p=self.root/'AGENTS.md';p.write_text('Existing rules\n');self.init();self.init()
         self.assertTrue(p.read_text().startswith('Existing rules\n'));self.assertEqual(p.read_text().count('research-workflow:start'),1)
+    def test_rerun_does_not_recreate_starter_records(self):
+        question=self.root/'research/questions/Q-001.md'
+        data=parse(question.read_text(),True)
+        question.unlink()
+        self.put('research/questions/Q-001.yaml',data)
+        (self.root/'research/brief.md').unlink()
+        self.init('--update')
+        self.assertFalse(question.exists())
+        self.assertFalse((self.root/'research/brief.md').exists())
+        self.assertEqual(self.errors(),[])
     def test_symlink_escape_rejected(self):
         outside=Path(self.temp.name)/'outside';outside.mkdir()
         (self.root/'research/brief.md').unlink();(self.root/'research/brief.md').symlink_to(outside/'brief.md')

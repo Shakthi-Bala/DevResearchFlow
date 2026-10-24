@@ -23,3 +23,9 @@ class ExampleTests(unittest.TestCase):
             self.assertIn('status: contradicted',(root/'research/hypotheses/HYP-001.yaml').read_text())
             self.assertIn('stale review',(root/'research/sessions/stale-review.txt').read_text())
             self.assertIn('No independent reviewer',(root/'research/reviews/REV-004.yaml').read_text())
+
+            result=subprocess.run([sys.executable,str(REPO/'bin/research-init'),str(root),'--hooks'],capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+            self.assertFalse((root/'research/questions/Q-001.md').exists())
+            check=subprocess.run([sys.executable,str(root/'.research-toolkit/checks/validate_records.py'),str(root)],capture_output=True,text=True)
+            self.assertEqual(check.returncode,0,check.stdout+check.stderr)
