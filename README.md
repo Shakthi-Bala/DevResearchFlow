@@ -70,15 +70,14 @@ remain the evidence to inspect.
 
 ## Quick start
 
-Requires **Python 3.10+**, **Git**, and **an AI agent of your choice**. The workflow
-currently lives on the **`dev` branch**. Role instructions and research records
-are reusable across agents; map role loading, tool access, and delegation to your
-chosen runtime.
+Requires **Python 3.10+**, **Git**, and **an AI agent of your choice**. Role
+instructions and research records are reusable across agents; map role loading,
+tool access, and delegation to your chosen runtime.
 
 ### 1. Get the toolkit
 
 ```bash
-git clone --branch dev https://github.com/Shakthi-Bala/dev_setup.git ~/dev_setup
+git clone --branch main https://github.com/Shakthi-Bala/dev_setup.git ~/dev_setup
 ```
 
 Already cloned it? Use your existing checkout. Replace `~/dev_setup` below with
@@ -258,7 +257,7 @@ separate from the shared research process and Graphify CLI.
 
 ```bash
 cd ~/dev_setup
-git switch dev
+git switch main
 git pull --ff-only
 ./bin/research-init ~/my_research_project --update
 ```
