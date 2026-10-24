@@ -1,0 +1,8 @@
+include README.md CHANGELOG.md LICENSE pyproject.toml
+include install.sh bin/research-init bin/graphify-init
+include templates/graphifyignore
+recursive-include docs *.md *.svg *.gif
+recursive-include examples *.md *.py
+recursive-include scripts *.py *.txt
+recursive-include workflows/research/tests *.py
+global-exclude __pycache__ *.py[cod]

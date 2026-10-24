@@ -144,6 +144,37 @@
         "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
       },
       "uniqueItems": true
+    },
+    "author": {
+      "type": "object",
+      "required": [
+        "role",
+        "model",
+        "session"
+      ],
+      "properties": {
+        "role": {
+          "enum": [
+            "coordinator",
+            "literature",
+            "hypothesis",
+            "methodology",
+            "engineer",
+            "verifier",
+            "analyst",
+            "human"
+          ]
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "session": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

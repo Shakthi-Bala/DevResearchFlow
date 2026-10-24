@@ -1,122 +1,158 @@
-# Record helpers and automatic validation
+# Daily commands
 
-Run commands from your initialized project root with the validation environment:
+Install `drf` from the toolkit checkout with `uv tool install .`, `pipx install .`,
+or `python3 -m pip install .`. `drf --project /path/to/project COMMAND` selects
+another project; put global `--project` before the command. `drf COMMAND --help`
+shows the command's options. Project commands use its installed, versioned checks.
+
+## Initialize and update
 
 ```bash
-python3 -m venv .venv-research
-.venv-research/bin/python -m pip install -r .research-toolkit/requirements.txt
+git init
+drf init . --ci
+drf status
 ```
 
-The helper is copied into each project. Use `--help` for all options:
+New projects require execution receipts and completed review identities. A Git
+pre-commit hook is installed by default; `--no-hooks` opts out. Existing hooks,
+external/disabled hooksPath settings, CI files and customized toolkit files are
+preserved. Explicit `--hooks` opts into installing at a configured external hook
+path. Default setup never modifies your global runtime configuration.
 
 ```bash
-.venv-research/bin/python .research-toolkit/checks/record_helper.py --help
-.venv-research/bin/python .research-toolkit/checks/record_helper.py new hypothesis HYP-001
-.venv-research/bin/python .research-toolkit/checks/record_helper.py new experiment EXP-001
+drf init . --update
+drf migrate --check
+drf migrate
 ```
 
-Replace draft placeholders and assign actual scope. Commands create new files exclusively;
-they refuse existing files and symlinked destinations. Creation is not approval.
-For an initial question, edit the existing `research/questions/Q-001.md` rather than
-creating another record with the same ID.
+Updates preserve scientific records and legacy project policy. Metadata migration
+creates backups; it never fabricates historical receipts or reviewer identities.
+`drf migrate --strict` enables strict policy only when existing evidence already
+satisfies it. Use a new strict project when historical manual runs cannot qualify.
+Starter brief/state/Q-001 files are created only on the first installation.
 
-## Review hashes and implementation fields
-
-Prepare a pending review with computed target hashes:
-
-```bash
-.venv-research/bin/python .research-toolkit/checks/record_helper.py review REV-001 \
-  --type protocol research/experiments/EXP-001.yaml
-```
-
-An independent verifier must perform and record the checks, findings, limitations
-and disposition before completing it. The helper does not change experiment status,
-review links, or scientific acceptance. After a target changes, supersede its old
-review and create a new review ID; do not refresh a completed review's hashes.
-
-Commit implementation and configuration, then print fields for the draft experiment:
+## Drafts and review hashes
 
 ```bash
-.venv-research/bin/python .research-toolkit/checks/record_helper.py pin \
+drf new hypothesis HYP-001 --model ACTUAL_MODEL --session ACTUAL_SESSION
+drf new experiment EXP-001 --mode confirmatory --model ACTUAL_MODEL --session ACTUAL_SESSION
+drf review REV-001 --type protocol --model REVIEW_MODEL --session FRESH_SESSION \
   research/experiments/EXP-001.yaml
 ```
 
-Copy these fields into the draft before obtaining applicable reviews. `pin` refuses
-uncommitted implementation/config changes and does not modify records. Pinning is
-bookkeeping, not proof of which code will execute.
+Fill every placeholder and record actual identities. Helpers never approve a
+review or promote a scientific result. An independent reviewer must fill its actual
+checks, findings, limits and disposition before setting `status: completed`.
+For code reviews, fill `implementation.author` with the actual engineer identity too.
+The same author/reviewer session is rejected even if the model label differs.
+Using another model and a fresh context is recommended; identity fields remain
+self-reported metadata rather than authentication.
 
-## Prepare a run without executing it
-
-Once the experiment has supporting protocol and implementation reviews and its
-status is `implementation_reviewed`, capture a planned run:
+After changing a target, replace its review rather than refreshing completed hashes:
 
 ```bash
-.venv-research/bin/python .research-toolkit/checks/record_helper.py prepare-run RUN-001 \
-  research/experiments/EXP-001.yaml \
+drf review REV-002 --type protocol --supersedes REV-001 \
+  --model REVIEW_MODEL --session ANOTHER_SESSION research/experiments/EXP-001.yaml
+```
+
+This creates a pending replacement, marks the original superseded, and retains its
+findings/narrative. Update the experiment's required review link after actual review.
+Commit intermediate gates so Git history retains each transition.
+
+Commit reviewed implementation/configuration, then print the pinning fields:
+
+```bash
+drf pin research/experiments/EXP-001.yaml
+```
+
+Copy the fields into the draft before applicable reviews. Pinning refuses dirty
+implementation/configuration and does not edit the record. The runner requires
+fully committed code without an uncommitted patch.
+
+## Dataset manifests
+
+```bash
+drf dataset-manifest configs/dataset-manifest.json data/
+```
+
+The output must be outside its inputs. The helper hashes every file, records sizes,
+and retains input roots. Verification detects added/deleted/changed files and rejects
+symlinks. Manifests may describe explicitly selected files instead of entire folders.
+Hashing large datasets costs I/O; a manifest identifies the files, not scientific validity.
+
+## Prepare and execute
+
+With current supporting protocol and implementation reviews, prepare a new run:
+
+```bash
+drf prepare-run RUN-001 research/experiments/EXP-001.yaml \
   --environment configs/environment.txt \
   --dataset-version dataset-v1 --dataset-manifest configs/dataset-manifest.json \
   --device CPU --seed 42 --exec python3 src/experiment.py
+git add research runs
+git commit -m 'Prepare reviewed execution'
+drf run RUN-001 --timeout 3600 --artifact predictions.json
 ```
 
-Provide real environment and dataset captures first. The helper copies the reviewed
-configuration and protocol, hashes those files and the environment/dataset manifest,
-and fills review links, commit, patch and command. It creates no logs or results and
-does not run the command. Review the planned record before execution.
+Capture the actual environment before planning. The program should write metrics
+and declared artifacts inside the directory given by `DRF_RUN_DIR`. It may also use
+`{run_dir}` in planned command arguments; the runner expands it to `runs/RUN-001`.
+The default metrics file is `metrics.json`; change it with `--metrics filename`.
+`--artifact` is repeatable and declares additional run-relative outputs.
 
-At actual start, create log files, record `started_at` and set `status: started`.
-Persist actual output immediately, even on failure, and fill the finish timestamp,
-exit code, status, failure reason, metrics and artifacts. Commit intermediate states
-before later transitions. Never rewrite a terminal manifest; start a fresh run.
+The runner checks current reviews, frozen protocol/config/environment checksums,
+tracked non-record inputs against the reviewed commit, staged/untracked non-record
+changes, per-file dataset contents and confirmatory Git registration before launch.
+Research records, run evidence and the installed toolkit are excluded from the code
+tree comparison. Ignored environments and external tools are not hermetically pinned.
+Use explicit absolute interpreter paths when environment selection matters.
 
-Print an artifact mapping without modifying any record:
+The runner captures stdout/stderr, start/finish times, real exit code, outputs and
+checksums; atomically finalizes the manifest and writes execution receipts. Timeouts,
+launch failures and interruption retain available evidence. A zero-exit command with
+missing declared outputs is recorded as failed. Terminal records cannot be rerun.
+Use a fresh run ID after a failure; never delete its evidence to reuse the directory.
+If the host crashes or the runner is forcibly killed, retain the started record,
+lock and partial logs; report the interrupted attempt and start a new run. Do not
+invent a terminal receipt for it.
 
 ```bash
-.venv-research/bin/python .research-toolkit/checks/record_helper.py artifact runs/RUN-001/metrics.json
+drf artifact runs/RUN-001/metrics.json
+drf status
+drf check
+git add research runs
+git commit -m 'Preserve captured execution'
 ```
 
-## Optional pre-commit hook and CI
+Receipts are checksummed local evidence, not signed attestation against a repository
+owner. Confirmatory supported claims must declare `mode: confirmatory` and cite
+run-backed preregistered evidence. Exploratory claims cannot be promoted directly;
+define a new prospective protocol and claim.
 
-From the toolkit checkout, opt into either or both integrations:
+## Hooks and project CI
 
 ```bash
-./bin/research-init /path/to/project --hooks --ci
+drf check --staged
+drf check --commit HEAD
+drf check --base-ref HEAD
 ```
 
-The project must already be a Git repository rooted at that path for `--hooks`.
-The initializer honors `core.hooksPath` and preserves any existing pre-commit hook.
-To integrate with an existing hook, call the command below from your hook; the
-sample is available in `.research-toolkit/integrations/pre-commit`.
-Existing `.github/workflows/research-records.yml` files are also preserved.
+The hook checks an isolated index snapshot, so working-file repairs cannot hide
+staged errors or supply unstaged evidence. Existing hooks can call `drf check --staged`
+or use `.research-toolkit/integrations/pre-commit`. Symlinks, submodules and conflicts
+in exported snapshots are rejected explicitly. Large tracked artifacts increase cost.
 
-```bash
-.venv-research/bin/python .research-toolkit/checks/validate_snapshot.py . --staged
-```
+Project CI checks committed transitions against each commit's own first parent,
+including valid planned-to-terminal runner receipts. On a newly pushed branch it
+checks the tip and its parent. Enable CI after workflow initialization when adopting
+it into existing history. CI uses the installed head checker, not an independent
+attestation authority. Require its `validate` job through your hosting settings.
 
-The hook validates an isolated copy of the index, including staged artifacts and
-configuration, and compares statuses and run history against HEAD. Unstaged files
-cannot hide staged errors or supply missing evidence. An initial commit is checked
-structurally without a historical baseline. Exported Git symlinks, submodules and
-unmerged entries are rejected explicitly; use manual validation for projects that
-require these layouts. Large tracked artifacts increase snapshot cost.
+## Compatibility and exploration
 
-Project CI checks each pushed/PR commit against its own first parent. It avoids
-comparing the final result directly to a much older branch base, which would falsely
-report skipped gates when intermediate gates were committed. On a new branch it
-checks the tip against its parent. Projects enabling CI midway through existing
-history should start after the initialization commit. CI runs the installed version
-of the checker from the selected head; it is not a tamper-proof trust boundary.
+The `bin/research-init` entry point and project-local Python scripts still work.
+Their helpers are the same implementation exposed by `drf`. Existing project policy
+is retained on update; `--legacy` explicitly selects legacy policy for a first install.
 
-```bash
-.venv-research/bin/python .research-toolkit/checks/validate_snapshot.py . --commit HEAD
-```
-
-Local hooks are bypassable and need installation in each clone. Configure required
-CI checks through your hosting service if you need merge enforcement. Neither
-integration controls execution or substitutes for scientific review.
-
-## Exploration
-
-For now, use `mode: exploratory` and bound the question and resource budget. Helpers
-reduce paperwork while keeping the existing review gates. A separate lite policy is
-deferred until real usage shows which records can safely be omitted. Exploratory
-results require a new prospectively defined confirmatory protocol before stronger claims.
+Use bounded `mode: exploratory` experiments today. A separate simplified tier remains
+deferred until thesis-pilot evidence identifies fields that can safely be omitted.

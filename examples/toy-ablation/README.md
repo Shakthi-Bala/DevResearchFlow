@@ -1,7 +1,8 @@
 # Runnable toy ablation
 
 This example builds a complete local research project, executes real commands,
-and records each workflow gate in Git. It needs Python 3.10+, Git and the toolkit's
+and records each workflow gate in Git. It uses strict policy and the real runner
+for logs, timestamps, exit codes and execution receipts. It needs Python 3.10+, Git and the toolkit's
 validation requirements; it makes no model calls and uses no downloaded dataset.
 Run from the toolkit checkout, using a new directory outside the checkout:
 
@@ -42,7 +43,9 @@ git log --oneline --reverse
 /tmp/devresearchflow-demo-venv/bin/python .research-toolkit/checks/validate_snapshot.py . --commit HEAD
 ```
 
-The generator validates every committed snapshot against its parent. The stale
+The runner checks the reviewed code and per-file dataset manifest before both
+attempts. Confirmatory registration commits and distinct synthetic author/reviewer
+identities are recorded. The generator validates every committed snapshot against its parent. The stale
 review is rejected before being superseded, and the failed run remains immutable.
 The literature and hypothesis stages use the explicitly defined synthetic setup;
 there are no external literature claims or invented sources. Task routing and all

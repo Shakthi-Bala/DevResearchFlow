@@ -104,6 +104,37 @@
     },
     "consequential_change": {
       "type": "boolean"
+    },
+    "author": {
+      "type": "object",
+      "required": [
+        "role",
+        "model",
+        "session"
+      ],
+      "properties": {
+        "role": {
+          "enum": [
+            "coordinator",
+            "literature",
+            "hypothesis",
+            "methodology",
+            "engineer",
+            "verifier",
+            "analyst",
+            "human"
+          ]
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "session": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

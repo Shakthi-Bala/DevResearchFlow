@@ -225,8 +225,8 @@ sha256sum runs/RUN-001/protocol.yaml
 Use `--review-type implementation`, `evidence`, or `source` for the other reviews.
 The content hash excludes mutable status/review/run links to avoid circular
 references. Protocol hashes also exclude the not-yet-pinned implementation commit
-and configuration hash (and implementation patch); implementation hashes include
-all three. All other protocol
+and configuration hash (plus implementation patch and author identity); implementation
+hashes include these pinning fields. All other protocol
 content changes invalidate the relevant review. Record each review's checks,
 limitations, findings/severity, required correction, and disposition. Completed
 supporting reviews cannot have unresolved blocking findings. A stale review must
@@ -303,3 +303,15 @@ validation environment so optional format checks remain available.
 The toolkit checkout contains a runnable toy ablation at `examples/toy-ablation/`.
 Use the [record helpers and optional validation automation](DAILY_USE.md)
 to reduce bookkeeping while retaining review requirements.
+
+## Captured execution and strict policy
+
+Use `drf` for daily commands; see [DAILY_USE.md](DAILY_USE.md). New projects require
+runner receipts and actual author/reviewer identities; legacy policy is preserved
+when updating existing projects. `drf run RUN-NNN` captures command output, timing,
+exit status and declared artifacts after checking reviewed code and per-file data.
+For implementation review, record the engineer in `implementation.author` as well
+as the experiment's protocol author. The same reviewer/author session is rejected.
+Confirmatory protocols must be committed before execution; supported strict claims
+require registered confirmatory run evidence. Local receipts are integrity records,
+not signed attestation against an actor controlling the host and repository.
