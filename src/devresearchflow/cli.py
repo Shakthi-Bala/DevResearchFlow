@@ -10,7 +10,13 @@ from pathlib import Path
 
 
 def main(argv: list[str] | None = None) -> int:
-    toolkit = Path(str(files("devresearchflow.toolkit")))
+    try:
+        toolkit = Path(str(files("devresearchflow.toolkit")))
+    except ModuleNotFoundError as exc:
+        # A source checkout exposes src/ directly without setuptools' package mapping.
+        toolkit = Path(__file__).resolve().parents[2] / "workflows/research"
+        if exc.name != "devresearchflow.toolkit" or not (toolkit / "VERSION").is_file():
+            raise
     parser = argparse.ArgumentParser(prog="drf", description="DevResearchFlow research toolkit")
     parser.add_argument(
         "--version", action="version", version=(toolkit / "VERSION").read_text().strip()
@@ -23,6 +29,7 @@ def main(argv: list[str] | None = None) -> int:
             "new",
             "review",
             "pin",
+            "advance",
             "prepare-run",
             "run",
             "execute",

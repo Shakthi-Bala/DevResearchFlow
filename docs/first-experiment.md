@@ -47,7 +47,8 @@ Replace all uppercase placeholders with your actual values.
 
    Prepare hashes with `drf review REV-001 --type protocol --model REVIEW_MODEL
    --session FRESH_SESSION research/experiments/EXP-001.yaml`. Actual review must
-   complete it. Link it in the experiment and commit `protocol_reviewed`.
+   complete it. Run `drf advance EXP-001 protocol_reviewed --review REV-001`,
+   then commit the gate.
 
 6. **Implement and pin inputs.** Ask the engineer:
 
@@ -58,8 +59,9 @@ Replace all uppercase placeholders with your actual values.
    Run `drf dataset-manifest configs/dataset-manifest.json data/`, capture environment
    details in `configs/environment.txt`, and commit implementation/configuration/data
    manifests. Move the experiment to draft if pinning changes are necessary, obtain
-   applicable fresh reviews, and use `drf pin research/experiments/EXP-001.yaml`.
-   Copy its commit/configuration fields; protocol hashes exclude these pin fields.
+   applicable fresh reviews, and use `drf pin research/experiments/EXP-001.yaml --write`.
+   Protocol hashes exclude these pin fields. Advance back through the protocol
+   gate with the still-current protocol review and commit that gate.
 
 7. **Review the implementation.** In a fresh verifier context ask:
 
@@ -68,8 +70,8 @@ Replace all uppercase placeholders with your actual values.
    > corrections to the engineer; do not fix code you are reviewing.
 
    Use `drf review REV-002 --type implementation --model REVIEW_MODEL --session
-   ANOTHER_SESSION research/experiments/EXP-001.yaml`. Record actual review, link it,
-   set `implementation_reviewed`, validate and commit the gate. Confirmatory protocol
+   ANOTHER_SESSION research/experiments/EXP-001.yaml`. Record actual review, then run
+   `drf advance EXP-001 implementation_reviewed --review REV-002`, validate and commit the gate. Confirmatory protocol
    registration must be committed before the runner starts.
 
 8. **Capture a real run.** With actual environment/data files, execute:
@@ -86,7 +88,10 @@ Replace all uppercase placeholders with your actual values.
    ```
 
    The program must write `metrics.json` under `DRF_RUN_DIR`. Preserve failed attempts
-   and use new IDs for retries. Commit captured evidence. The runner records the
+   and use new IDs for retries. The runner also saves `environment-captured.json`
+   (interpreter, packages, GPU probe and selected environment variables).
+   Commit captured evidence. Advance to `executing`, commit, then advance to
+   `completed` once every linked run is terminal; commit each gate. The runner records the
    intermediate start; a valid receipt permits planned-to-terminal Git transitions.
 
 9. **Analyze and challenge the conclusion.** Ask the analyst to reproduce metrics

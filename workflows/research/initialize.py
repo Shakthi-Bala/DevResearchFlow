@@ -247,7 +247,7 @@ def main():
     current_ignore = ignore.read_text() if ignore.exists() else ""
     missing = [
         rule
-        for rule in [".venv-research/", "__pycache__/"]
+        for rule in [".venv-research/", "__pycache__/", ".research-toolkit/permissions/"]
         if rule not in current_ignore.splitlines()
     ]
     if missing:

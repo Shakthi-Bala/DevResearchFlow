@@ -9,7 +9,7 @@ from pathlib import Path
 
 from check_references import reference_errors
 from provenance import policy
-from records import load_records
+from records import content_hash, load_records
 from validate_records import policy_errors
 
 ACTIONS = {
@@ -22,6 +22,86 @@ ACTIONS = {
 }
 
 
+def next_action(experiment, records):
+    rid = experiment["id"]
+    status = experiment["status"]
+    if status == "executing":
+        runs = [r for r, _ in records.values() if r["kind"] == "run" and r["experiment"] == rid]
+        active = [r for r in runs if r["status"] == "started"]
+        if active:
+            return f"inspect running {active[0]['id']} logs; preserve partial evidence"
+        planned = [r for r in runs if r["status"] == "planned"]
+        if planned:
+            return f"drf run {planned[0]['id']}"
+        if runs:
+            return f"drf advance {rid} completed; commit the gate"
+    if status != "completed":
+        if status == "implementation_reviewed":
+            planned = [
+                r
+                for r, _ in records.values()
+                if r["kind"] == "run" and r["experiment"] == rid and r["status"] == "planned"
+            ]
+            if planned:
+                return f"drf run {planned[0]['id']}"
+            finished = [
+                r
+                for r, _ in records.values()
+                if r["kind"] == "run" and r["experiment"] == rid and r["started_at"]
+            ]
+            if finished:
+                return f"drf advance {rid} executing; commit the gate"
+        return ACTIONS[status]
+    run_ids = {
+        r["id"] for r, _ in records.values() if r["kind"] == "run" and r["experiment"] == rid
+    }
+    observations = [
+        r for r, _ in records.values() if r["kind"] == "observation" and r["run"] in run_ids
+    ]
+    evidence = run_ids | {r["id"] for r in observations}
+    claims = [
+        r
+        for r, _ in records.values()
+        if r["kind"] == "claim"
+        and evidence.intersection(r["supporting_evidence"] + r["contradicting_evidence"])
+    ]
+    if not observations:
+        return f"analyze all runs for {rid} and create linked observations"
+    if not claims:
+        return f"create a claim linked to observations for {rid}"
+    reviews = []
+    for claim in claims:
+        current = [
+            r
+            for r, _ in records.values()
+            if r["kind"] == "review"
+            and r["review_type"] == "evidence"
+            and r["status"] == "completed"
+            and claim["id"] in r["targets"]
+            and r["target_versions"].get(claim["id"]) == content_hash(claim, "evidence")
+        ]
+        if not current:
+            return f"obtain independent evidence review for {claim['id']}"
+        reviews.extend(r["id"] for r in current)
+    decisions = [
+        r
+        for r, _ in records.values()
+        if r["kind"] == "decision"
+        and set(r["claims"]).intersection(c["id"] for c in claims)
+        and set(r["reviews"]).intersection(reviews)
+    ]
+    accepted = [r["id"] for r in decisions if r["status"] == "accepted"]
+    if accepted:
+        return (
+            f"complete: decision {', '.join(accepted)} recorded; choose the next research question"
+        )
+    if decisions:
+        return f"resolve proposed decision {decisions[0]['id']} with the principal investigator"
+    return (
+        f"record a decision citing {', '.join(c['id'] for c in claims)} and their evidence reviews"
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", default=".")
@@ -31,7 +111,7 @@ def main() -> int:
     records, errors = load_records(root)
     errors += reference_errors(root, records) + policy_errors(root, records)
     experiments = [
-        dict(id=r["id"], gate=r["status"], next_action=ACTIONS[r["status"]])
+        dict(id=r["id"], gate=r["status"], next_action=next_action(r, records))
         for r, _ in records.values()
         if r["kind"] == "experiment"
     ]
@@ -44,7 +124,14 @@ def main() -> int:
         "next_action": "repair listed validation errors first"
         if errors
         else (
-            "follow the experiment actions"
+            next(
+                (
+                    f"{item['id']}: {item['next_action']}"
+                    for item in experiments
+                    if not item["next_action"].startswith("complete:")
+                ),
+                f"{experiments[0]['id']}: {experiments[0]['next_action']}",
+            )
             if experiments
             else "fill research/brief.md and the initial question"
         ),

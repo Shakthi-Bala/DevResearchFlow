@@ -264,3 +264,75 @@ class HelperTests(ToolkitFixture):
             capture_output=True,
             text=True,
         )
+
+    def test_advance_checks_gate_and_preserves_rejected_record(self):
+        from records import parse
+
+        experiment = self.experiment()
+        self.save(experiment)
+        path = self.root / "research/experiments/EXP-001.yaml"
+        original = path.read_bytes()
+        result = self.helper("advance", "EXP-001", "protocol_reviewed", "--review", "REV-001")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(path.read_bytes(), original)
+        self.review("REV-001", experiment, "protocol")
+        result = self.helper("advance", "EXP-001", "protocol_reviewed", "--review", "REV-001")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        current = parse(path.read_text())
+        self.assertEqual(current["required_reviews"]["protocol"], "REV-001")
+        self.assertEqual(current["status"], "protocol_reviewed")
+        original = path.read_bytes()
+        result = self.helper("advance", "EXP-001", "completed")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(path.read_bytes(), original)
+
+    def test_pin_write_updates_only_draft_pins(self):
+        from records import parse, sha256
+
+        self.ready_experiment()
+        path = self.root / "research/experiments/EXP-001.yaml"
+        original = path.read_bytes()
+        result = self.helper("pin", "research/experiments/EXP-001.yaml", "--write")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(path.read_bytes(), original)
+        experiment = parse(path.read_text())
+        experiment["status"] = "draft"
+        experiment["implementation"]["commit"] = None
+        experiment["configuration"]["sha256"] = None
+        self.save(experiment)
+        result = self.helper("pin", "research/experiments/EXP-001.yaml", "--write")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        current = parse(path.read_text())
+        self.assertEqual(
+            current["implementation"]["commit"], self.git("rev-parse", "HEAD").stdout.strip()
+        )
+        self.assertEqual(
+            current["configuration"]["sha256"], sha256(self.root / "configs/model.yaml")
+        )
+        self.assertEqual(current["status"], "draft")
+
+    def test_advance_rejects_uncommitted_gate_skip(self):
+        self.ready_experiment()
+        experiment_path = "research/experiments/EXP-001.yaml"
+        from records import parse
+
+        experiment = parse((self.root / experiment_path).read_text())
+        experiment["status"] = "draft"
+        self.save(experiment)
+        self.git("add", ".")
+        self.git(
+            "-c",
+            "user.name=Test",
+            "-c",
+            "user.email=test@example.invalid",
+            "commit",
+            "-qm",
+            "draft gate",
+        )
+        result = self.helper("advance", "EXP-001", "protocol_reviewed", "--review", "REV-001")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        original = (self.root / experiment_path).read_bytes()
+        result = self.helper("advance", "EXP-001", "implementation_reviewed", "--review", "REV-002")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("forbidden transition", result.stderr)
+        self.assertEqual((self.root / experiment_path).read_bytes(), original)

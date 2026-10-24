@@ -13,8 +13,18 @@
 | Default hooks | Enabled for root Git projects; opt out with `--no-hooks`. Existing/external hooks remain protected. |
 | Role permissions | Opt-in Codex profiles and restrictive Claude file-tool guards are generated and locally tested. Live runtime activation/verification remains an operator step; no model sessions were launched. |
 | Learnability | Short README, ten-step tutorial, runner-backed example, lifecycle diagrams and branch-protection guidance. |
-| Code quality | Ruff formatting/lint, typed CLI/provenance/runner checked by mypy, property tests, coverage reporting, source/wheel build and wheel smoke checks in CI. This is not full static typing of every legacy helper. |
+| Code quality | Ruff formatting/lint, typed CLI/provenance/runner/validator/record helper checked by mypy, property tests, coverage reporting, source/wheel build and wheel smoke checks in CI. This is not full static typing of every legacy helper. |
 | Versions/migration | Versioned package/metadata and changelog; backed-up metadata v1→v2 migration preserves scientific records and legacy policy. Unsupported future formats fail rather than guessing a conversion. |
+
+## Review follow-up (unreleased)
+
+The v3 review's seven code issues are addressed: the verifier has exact validation
+and pytest command exceptions, generated local profiles are ignored, the runner
+captures an environment artifact, `advance` and `pin --write` reduce manual edits,
+status follows linked evidence/decisions, CLI tests run from an uninstalled checkout,
+and mypy includes validator and record helper. Python verification commands require
+trusted code or an external OS sandbox; command allowlists alone cannot isolate
+Python writes. Historical run receipts remain compatible without invented captures.
 
 ## Intentionally pending
 

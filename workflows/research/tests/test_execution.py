@@ -285,3 +285,61 @@ if a.mutate:Path('src/model.py').write_text('mutated')
         (self.root / "data/b.txt").write_text("b")
         with self.assertRaisesRegex(ValueError, "added or removed"):
             verify_dataset(self.root, dataset)
+
+    def test_environment_capture_is_automatic_and_receipt_covered(self):
+        self.prepared()
+        result = self.runner()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        path = self.root / "runs/RUN-001/environment-captured.json"
+        captured = json.loads(path.read_text())
+        self.assertEqual(captured["runner"]["executable"], sys.executable)
+        self.assertTrue(captured["runner"]["packages"])
+        command_python = json.loads(captured["command_python"]["stdout"])
+        self.assertEqual(command_python["executable"], sys.executable)
+        self.assertIn("CUDA_VISIBLE_DEVICES", captured["variables"])
+        self.assertIn("gpu", captured)
+        manifest = self.manifest()
+        self.assertIn(
+            "runs/RUN-001/environment-captured.json", [a["path"] for a in manifest["artifacts"]]
+        )
+        receipt = json.loads((self.root / manifest["execution"]["path"]).read_text())
+        self.assertIn("runs/RUN-001/environment-captured.json", receipt["files"])
+        path.write_text("fabricated environment")
+        self.assertTrue(any("execution evidence changed" in e for e in self.errors()))
+
+    def test_verifier_guard_allows_only_exact_verification_commands(self):
+        script = self.root / ".research-toolkit/checks/role_permissions.py"
+        profile = subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                "--project",
+                str(self.root),
+                "--runtime",
+                "claude",
+                "--role",
+                "verifier",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(profile.returncode, 0, profile.stderr)
+        settings = json.loads(
+            (self.root / ".research-toolkit/permissions/verifier.claude.json").read_text()
+        )
+        commands = [
+            rule[5:-1] for rule in settings["permissions"]["allow"] if rule.startswith("Bash(")
+        ]
+        self.assertEqual(len(commands), 2)
+        for command, expected in [(c, 0) for c in commands] + [
+            (commands[0] + " && touch src/evil.py", 2),
+            (commands[1] + " ../implementation", 2),
+            ("python -c 'print(1)'", 2),
+        ]:
+            result = subprocess.run(
+                [sys.executable, str(script), "--project", str(self.root), "--guard", "verifier"],
+                input=json.dumps({"tool_name": "Bash", "tool_input": {"command": command}}),
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, expected, result.stderr)

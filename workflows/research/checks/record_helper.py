@@ -2,10 +2,12 @@
 """Create draft records and capture provenance without granting review approval."""
 
 import argparse
+import copy
 import json
 import re
 import subprocess
 from pathlib import Path
+from typing import Any
 
 from records import FOLDERS, content_hash, local_path, parse, schema_errors, sha256, yaml
 
@@ -28,11 +30,11 @@ PREFIXES = dict(
 )
 
 
-def read(path):
+def read(path: Path) -> dict[str, Any]:
     return parse(path.read_text(), path.suffix == ".md")
 
 
-def output(root, relative):
+def output(root: Path, relative: str) -> Path:
     path = Path(relative)
     if path.is_absolute() or ".." in path.parts:
         raise ValueError("output must be relative to the project")
@@ -45,7 +47,7 @@ def output(root, relative):
     return dest
 
 
-def save(path, record, markdown=False):
+def save(path: Path, record: dict[str, Any], markdown: bool = False) -> None:
     errors = schema_errors(record, record["kind"])
     if errors:
         raise ValueError("; ".join(errors))
@@ -61,12 +63,83 @@ def save(path, record, markdown=False):
     print(path)
 
 
-def template(kind):
+def template(kind: str) -> dict[str, Any]:
     path = next((Path(__file__).resolve().parent.parent / "templates").glob(kind + ".*"))
     return read(path)
 
 
-def main():
+def rewrite(path: Path, record: dict[str, Any]) -> None:
+    """Preserve Markdown narrative and JSON serialization on a checked update."""
+    body = ""
+    if path.suffix == ".md":
+        lines = path.read_text().splitlines(keepends=True)
+        end = next(i for i in range(1, len(lines)) if lines[i].strip() == "---")
+        body = "".join(lines[end + 1 :])
+    payload = yaml.safe_dump(record, sort_keys=False)
+    if path.suffix == ".md":
+        payload = "---\n" + payload + "---\n" + body
+    elif path.suffix == ".json":
+        payload = json.dumps(record, indent=2) + "\n"
+    path.write_text(payload)
+
+
+def advance(root: Path, rid: str, status: str, reviews: list[str]) -> None:
+    from check_references import reference_errors
+    from records import load_records
+    from validate_records import TRANSITIONS, history_errors, policy_errors, revision_exists
+
+    records, errors = load_records(root)
+    errors += reference_errors(root, records) + policy_errors(root, records)
+    if errors:
+        raise ValueError("repair project validation first: " + "; ".join(errors))
+    if rid not in records or records[rid][0]["kind"] != "experiment":
+        raise ValueError("advance requires an existing experiment ID")
+    record, path = records[rid]
+    if status not in TRANSITIONS["experiment"].get(record["status"], set()):
+        raise ValueError(f"forbidden transition {record['status']} -> {status}")
+    candidate = copy.deepcopy(record)
+    candidate["status"] = status
+    stage = {"protocol_reviewed": "protocol", "implementation_reviewed": "implementation"}.get(
+        status
+    )
+    if reviews and not stage:
+        raise ValueError("--review applies only to protocol_reviewed or implementation_reviewed")
+    if len(reviews) > 1:
+        raise ValueError("provide one review for the gate")
+    for review_id in reviews:
+        review = records.get(review_id, ({}, None))[0]
+        if (
+            review.get("kind") != "review"
+            or review.get("review_type") != stage
+            or rid not in review.get("targets", [])
+        ):
+            raise ValueError("review must target this experiment and match the gate")
+        candidate["required_reviews"][stage] = review_id
+    linked_runs = [
+        v[0] for v in records.values() if v[0]["kind"] == "run" and v[0]["experiment"] == rid
+    ]
+    if status == "executing" and not any(run["started_at"] for run in linked_runs):
+        raise ValueError("execute a planned run before advancing to executing")
+    if status == "completed" and (
+        not linked_runs or any(run["status"] in {"planned", "started"} for run in linked_runs)
+    ):
+        raise ValueError("complete or cancel every linked run before completing the experiment")
+    records[rid] = (candidate, path)
+    errors = (
+        schema_errors(candidate, "experiment")
+        + reference_errors(root, records)
+        + policy_errors(root, records)
+    )
+    if revision_exists(root, "HEAD"):
+        errors += history_errors(root, records, "HEAD")
+    if errors:
+        raise ValueError("gate rejected: " + "; ".join(errors))
+    output(root, str(path.relative_to(root)))
+    rewrite(path, candidate)
+    print(f"{rid}: {record['status']} -> {status}; commit this gate before advancing again")
+
+
+def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", default=".")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -95,6 +168,11 @@ def main():
         "pin", help="print implementation/configuration fields for a draft experiment"
     )
     pin.add_argument("experiment")
+    pin.add_argument("--write", action="store_true", help="write pinned fields into the draft")
+    step = commands.add_parser("advance", help="validate and write the next experiment gate")
+    step.add_argument("id")
+    step.add_argument("status")
+    step.add_argument("--review", action="append", default=[])
     run = commands.add_parser(
         "prepare-run", help="capture a planned run and frozen provenance; does not execute"
     )
@@ -119,6 +197,9 @@ def main():
     dataset.add_argument("inputs", nargs="+")
     args = parser.parse_args()
     root = Path(args.project).expanduser().resolve()
+    if args.command == "advance":
+        advance(root, args.id, args.status, args.review)
+        return
     if args.command == "dataset-manifest":
         from provenance import data_files
 
@@ -166,6 +247,18 @@ def main():
         if changes:
             raise ValueError("commit implementation and configuration before pinning")
         implementation = {**record["implementation"], "commit": commit}
+        if args.write:
+            record["implementation"] = implementation
+            record["configuration"]["sha256"] = sha256(
+                local_path(root, record["configuration"]["file"])
+            )
+            errors = schema_errors(record, "experiment")
+            if errors:
+                raise ValueError("; ".join(errors))
+            path = output(root, args.experiment)
+            rewrite(path, record)
+            print(path)
+            return
         print(
             yaml.safe_dump(
                 {
@@ -330,7 +423,7 @@ def main():
     record["logs"] = {name: f"{prefix}/{name}.log" for name in ("stdout", "stderr")}
     save(dest / "manifest.yaml", record)
     print(
-        "Planned only. Record actual timestamps, logs, exit code, artifacts and deviations when executing."
+        "Planned only. Execute with drf run to capture timestamps, logs, environment, exit code and artifacts."
     )
 
 

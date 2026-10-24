@@ -7,7 +7,9 @@ drf permissions --runtime codex --role verifier
 drf permissions --runtime claude --role verifier
 ```
 
-The files are created exclusively under `.research-toolkit/permissions/`. Existing
+The files are created exclusively under `.research-toolkit/permissions/`, which
+`drf init` adds to the project gitignore on installation and update. They contain
+checkout and interpreter paths: regenerate on each machine. Existing
 runtime settings and user/home configuration are never changed. Choose among all
 seven roles; verifier writes are confined to `research/reviews/` and
 `tests/verification/`. Engineer writes exclude reviews and verification tests.
@@ -40,10 +42,20 @@ Sources: [official OpenAI configuration reference](https://learn.chatgpt.com/doc
 Review the generated JSON and load it as settings for a dedicated role session.
 It uses `Edit(path)` rules (which cover built-in file writers), a `PreToolUse` guard,
 and `dontAsk`. The guard permits known read tools and built-in file writes only
-within that role's paths. It denies shell execution, delegation and unknown tools;
-MCP and PowerShell are denied as well. This prevents a shell/Python call from
-bypassing file-tool rules. The profile deliberately cannot run experiments: use
-`drf run` from a separate trusted terminal/engineer workflow.
+within that role's paths. For the verifier, it also allows exactly two Bash
+command strings, printed in the generated JSON: validation using the installed
+`validate_records.py` (the check behind `drf check`) and
+`python -m pytest -p no:cacheprovider tests/verification`, with a fixed interpreter
+and an explicit `cd` to this checkout. Copy the exact strings from the profile;
+extra arguments, redirections, command chaining and other shell commands are denied.
+Install pytest in that interpreter (`.[dev]` includes it).
+
+Pytest executes Python code, including project imports and conftest files. These
+commands are trusted execution exceptions, not filesystem isolation: execute them
+in an OS sandbox/container if verification code is untrusted. The file-tool guard
+cannot constrain writes performed inside Python. Other roles retain the shell deny.
+Delegation, unknown tools, MCP and PowerShell remain denied. Substantial experiments
+still use `drf run` from a separate trusted terminal/engineer workflow.
 
 Do not run this session with bypass-permissions mode or broaden its tools behind
 the guard. Use managed settings when the operator must not override policy. The

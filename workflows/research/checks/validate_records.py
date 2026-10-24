@@ -5,6 +5,7 @@ import argparse
 import subprocess
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from check_references import reference_errors
 from provenance import identity_errors, policy, receipt_errors, verify_dataset
@@ -59,7 +60,7 @@ TRANSITIONS = {
 }
 
 
-def revision_exists(root, revision):
+def revision_exists(root: Path, revision: str | None) -> bool:
     if not revision:
         return False
     result = subprocess.run(
@@ -68,8 +69,8 @@ def revision_exists(root, revision):
     return result.returncode == 0
 
 
-def policy_errors(root, records):
-    errors = []
+def policy_errors(root: Path, records: dict[str, tuple[dict[str, Any], Path]]) -> list[str]:
+    errors: list[str] = []
 
     def report(rid, message):
         errors.append(f"{rid}: {message}")
@@ -201,7 +202,7 @@ def policy_errors(root, records):
             ):
                 revision = r.get("registration_commit")
                 try:
-                    if not revision_exists(root, revision):
+                    if not isinstance(revision, str) or not revision_exists(root, revision):
                         raise ValueError("missing committed protocol registration")
                     ancestor = subprocess.run(
                         ["git", "-C", str(root), "merge-base", "--is-ancestor", revision, "HEAD"],
@@ -346,8 +347,10 @@ def policy_errors(root, records):
     return errors
 
 
-def history_errors(root, records, base_ref):
-    errors = []
+def history_errors(
+    root: Path, records: dict[str, tuple[dict[str, Any], Path]], base_ref: str
+) -> list[str]:
+    errors: list[str] = []
     result = subprocess.run(
         ["git", "-C", str(root), "rev-parse", "--show-toplevel"], capture_output=True, text=True
     )
@@ -443,7 +446,7 @@ def history_errors(root, records, base_ref):
     return errors
 
 
-def main():
+def main() -> bool:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("project", nargs="?", default=".")
     parser.add_argument(

@@ -52,3 +52,19 @@ class ExampleTests(unittest.TestCase):
                 text=True,
             )
             self.assertEqual(check.returncode, 0, check.stdout + check.stderr)
+
+            status = subprocess.run(
+                [
+                    sys.executable,
+                    str(root / ".research-toolkit/checks/status.py"),
+                    "--project",
+                    str(root),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(status.returncode, 0, status.stdout + status.stderr)
+            summary = json.loads(status.stdout)
+            self.assertIn("DEC-001", summary["next_action"])
+            self.assertNotIn("obtain independent evidence review", summary["next_action"])
