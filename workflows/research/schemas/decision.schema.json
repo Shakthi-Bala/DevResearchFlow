@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dev-setup.local/research/decision.schema.json",
+  "title": "decision",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "status",
+    "origin",
+    "scope",
+    "references",
+    "version",
+    "action",
+    "rationale",
+    "claims",
+    "reviews",
+    "human_direction",
+    "consequential_change"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^DEC-[0-9]{3,}$"
+    },
+    "kind": {
+      "const": "decision"
+    },
+    "status": {
+      "enum": [
+        "proposed",
+        "accepted",
+        "replaced"
+      ]
+    },
+    "origin": {
+      "enum": [
+        "human",
+        "agent_generated",
+        "measured",
+        "imported"
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "action": {
+      "enum": [
+        "continue",
+        "revise",
+        "reject",
+        "unresolved"
+      ]
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "human_direction": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "consequential_change": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,20 @@
+id: HYP-001
+kind: hypothesis
+status: proposed
+origin: agent_generated
+scope:
+  project: SET_ME
+references: []
+version: 1
+question: Q-001
+statement: SET_ME
+assumptions: []
+alternatives:
+- SET_ME
+falsification_conditions:
+- SET_ME
+planned_tests: []
+supporting_evidence: []
+contradicting_evidence: []
+review_records: []
+open_questions: []

@@ -21,7 +21,8 @@ cd ~/any_project && graphify-init
 | `install.sh` | Machine setup: installs [uv](https://github.com/astral-sh/uv), the Graphify CLI (pinned version), the `/graphify` Claude Code skill, and links `bin/*` into `~/.local/bin`. Safe to re-run. |
 | `bin/graphify-init` | Per-project setup (see below). |
 | `templates/graphifyignore` | Default `.graphifyignore` copied into new projects (data, outputs, envs, third-party code...). |
-| `workflows/` | Agentic workflows (coming soon). |
+| `bin/research-init` | Install the seven-role research workflow into a project; preserve customizations and record toolkit provenance. |
+| `workflows/research/` | Agent contracts, evidence templates, schemas, checks, and operating instructions. |
 
 ## Graphify: a code map for Claude Code
 
@@ -57,3 +58,20 @@ GRAPHIFY_VERSION=latest ./install.sh                        # move to the newest
 ```
 
 Bump `GRAPHIFY_VERSION` in `install.sh` once a new version is checked, so every machine stays on the same one.
+
+## Research workflow
+
+```bash
+research-init ~/research_project
+# Optional: also build the Graphify code index and install its integrations
+research-init ~/research_project --graphify
+```
+
+All seven roles are included: coordinator, literature researcher, hypothesis
+researcher, methodology designer, engineer, independent verifier, and analyst.
+The verifier reviews the protocol, implementation, and conclusions separately.
+Project research records preserve evidence and history; Graphify supplies the code map.
+See [setup, workflow diagram, and validation](workflows/research/README.md).
+
+Initialization requires Python 3.10+. The validation utilities additionally use
+PyYAML and jsonschema; install them in a virtual environment as documented.

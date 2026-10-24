@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dev-setup.local/research/claim.schema.json",
+  "title": "claim",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "status",
+    "origin",
+    "scope",
+    "references",
+    "version",
+    "statement",
+    "assumptions",
+    "supporting_evidence",
+    "contradicting_evidence",
+    "review_records",
+    "dependencies",
+    "limitations",
+    "check_methods"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^CLM-[0-9]{3,}$"
+    },
+    "kind": {
+      "const": "claim"
+    },
+    "status": {
+      "enum": [
+        "unreviewed",
+        "source_checked",
+        "provisionally_supported",
+        "disputed",
+        "needs_review",
+        "superseded"
+      ]
+    },
+    "origin": {
+      "enum": [
+        "human",
+        "agent_generated",
+        "measured",
+        "imported"
+      ]
+    },
+    "scope": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "statement": {
+      "type": "string",
+      "minLength": 1
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "supporting_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "contradicting_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "review_records": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(Q|TASK|SRC|HYP|EXP|RUN|OBS|CLM|REV|DEC)-[0-9]{3,}$"
+      },
+      "uniqueItems": true
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "check_methods": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "source_inspection",
+          "numerical_check",
+          "implementation_review",
+          "independent_reproduction"
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

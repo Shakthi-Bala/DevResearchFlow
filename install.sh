@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-time machine setup: uv, Graphify CLI + Claude Code skill, graphify-init on PATH.
+# One-time machine setup: uv, Graphify CLI + Claude Code skill, graphify-init + research-init on PATH.
 #
 #   ./install.sh                         # pinned Graphify version
 #   GRAPHIFY_VERSION=latest ./install.sh # newest release
@@ -42,4 +42,4 @@ if ! printf '%s' "$ORIG_PATH" | tr ':' '\n' | grep -qx "$BIN"; then
   echo "[install] NOTE: add $BIN to your PATH, e.g.  echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> ~/.bashrc"
 fi
 
-echo "[install] done. In any repo:  graphify-init   then in Claude Code:  /graphify ."
+echo "[install] done. Code map: graphify-init (then /graphify . in Claude Code). Research: research-init"

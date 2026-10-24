@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1410" viewBox="0 0 1700 1410" role="img" aria-label="03  Per-project folders">
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L9,5 L0,10 Z" fill="#70849c"/></marker></defs>
+<rect width="1700" height="1410" fill="#f5f8fc"/>
+<text x="50" y="55" font-family="DejaVu Sans, Arial, sans-serif" font-size="32" font-weight="700" fill="#14243b" text-anchor="start">03  Per-project folders</text>
+<text x="50" y="91" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="400" fill="#52637a" text-anchor="start">Example: aperture_depth/. Every scientific record belongs to this project.</text>
+<rect x="40" y="135" width="1620" height="1195" rx="18" fill="#eaf0f8" stroke="#d3ddea" stroke-width="2"/>
+<text x="62" y="174" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="700" fill="#14243b" text-anchor="start">aperture_depth/</text>
+<text x="70" y="215" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="700" fill="#14243b" text-anchor="start">Root instructions: README.md and CLAUDE.md</text>
+<rect x="70" y="250" width="410" height="360" rx="14" fill="white" stroke="#ccd8e7" stroke-width="2"/>
+<rect x="70" y="262" width="5" height="336" rx="2" fill="#245ac8"/>
+<text x="92" y="284" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="700" fill="#245ac8" text-anchor="start">.claude/agents/</text>
+<text x="92" y="315" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">coordinator.md</text>
+<text x="92" y="344" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">literature.md</text>
+<text x="92" y="373" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">hypothesis.md</text>
+<text x="92" y="402" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">methodology.md</text>
+<text x="92" y="431" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">engineer.md</text>
+<text x="92" y="460" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">verifier.md</text>
+<text x="92" y="489" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">analyst.md</text>
+<rect x="510" y="250" width="1120" height="630" rx="18" fill="#e4ecf7" stroke="#d3ddea" stroke-width="2"/>
+<text x="532" y="289" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="700" fill="#14243b" text-anchor="start">research/</text>
+<text x="535" y="330" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="400" fill="#14243b" text-anchor="start">brief.md  ·  toolkit_version.json  ·  state.yaml</text>
+<rect x="535" y="370" width="335" height="240" rx="14" fill="white" stroke="#ccd8e7" stroke-width="2"/>
+<rect x="535" y="382" width="5" height="216" rx="2" fill="#245ac8"/>
+<text x="557" y="404" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="700" fill="#245ac8" text-anchor="start">Planning records</text>
+<text x="557" y="435" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="400" fill="#52637a" text-anchor="start">questions/Q-001.md</text>
+<text x="557" y="464" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="400" fill="#52637a" text-anchor="start">hypotheses/HYP-001.yaml</text>
+<text x="557" y="493" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="400" fill="#52637a" text-anchor="start">experiments/EXP-001.yaml</text>
+<rect x="890" y="370" width="350" height="265" rx="14" fill="white" stroke="#ccd8e7" stroke-width="2"/>
+<rect x="890" y="382" width="5" height="241" rx="2" fill="#087b73"/>
+<text x="912" y="404" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="700" fill="#087b73" text-anchor="start">Evidence records</text>
+<text x="912" y="435" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="400" fill="#52637a" text-anchor="start">sources/SRC-001.md</text>
+<text x="912" y="464" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="400" fill="#52637a" text-anchor="start">observations/OBS-001.yaml</text>
+<text x="912" y="493" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="400" fill="#52637a" text-anchor="start">claims/CLM-001.yaml</text>
+<text x="912" y="522" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="400" fill="#52637a" text-anchor="start">reviews/REV-001.md</text>
+<rect x="1260" y="370" width="345" height="240" rx="14" fill="white" stroke="#ccd8e7" stroke-width="2"/>
+<rect x="1260" y="382" width="5" height="216" rx="2" fill="#7552bd"/>
+<text x="1282" y="404" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="700" fill="#7552bd" text-anchor="start">Coordination</text>
+<text x="1282" y="435" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="400" fill="#52637a" text-anchor="start">tasks/TASK-001.yaml</text>
+<text x="1282" y="464" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="400" fill="#52637a" text-anchor="start">decisions/DEC-001.md</text>
+<text x="1282" y="493" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="400" fill="#52637a" text-anchor="start">sessions/SESSION-001.md</text>
+<text x="535" y="700" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="700" fill="#14243b" text-anchor="start">These are direct subdirectories of research/.</text>
+<text x="535" y="738" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="400" fill="#52637a" text-anchor="start">Source notes preserve exact passages and document versions.</text>
+<text x="535" y="774" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="400" fill="#52637a" text-anchor="start">Observations record measurements; claims interpret them.</text>
+<text x="535" y="810" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="400" fill="#52637a" text-anchor="start">Reviews identify what was checked and what remains unresolved.</text>
+<rect x="70" y="650" width="410" height="230" rx="14" fill="white" stroke="#ccd8e7" stroke-width="2"/>
+<rect x="70" y="662" width="5" height="206" rx="2" fill="#087b73"/>
+<text x="92" y="684" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="700" fill="#087b73" text-anchor="start">Code and analysis</text>
+<text x="92" y="715" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">src/</text>
+<text x="92" y="744" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">configs/</text>
+<text x="92" y="773" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">tests/verification/</text>
+<text x="92" y="802" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">scripts/</text>
+<text x="92" y="831" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">analysis/</text>
+<rect x="70" y="930" width="680" height="325" rx="14" fill="white" stroke="#ccd8e7" stroke-width="2"/>
+<rect x="70" y="942" width="5" height="301" rx="2" fill="#7552bd"/>
+<text x="92" y="964" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="700" fill="#7552bd" text-anchor="start">runs/RUN-001/</text>
+<text x="92" y="995" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">manifest.yaml</text>
+<text x="92" y="1024" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">config_resolved.yaml</text>
+<text x="92" y="1053" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">environment.txt</text>
+<text x="92" y="1082" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">stdout.log and stderr.log</text>
+<text x="92" y="1111" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">metrics.json</text>
+<text x="92" y="1140" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">artifacts.json</text>
+<rect x="785" y="930" width="420" height="250" rx="14" fill="white" stroke="#ccd8e7" stroke-width="2"/>
+<rect x="785" y="942" width="5" height="226" rx="2" fill="#245ac8"/>
+<text x="807" y="964" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="700" fill="#245ac8" text-anchor="start">graphify-out/</text>
+<text x="807" y="995" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">graph.json</text>
+<text x="807" y="1024" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">graph.html</text>
+<text x="807" y="1053" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">GRAPH_REPORT.md</text>
+<text x="807" y="1082" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">Generated code index</text>
+<rect x="1240" y="930" width="390" height="275" rx="14" fill="white" stroke="#ccd8e7" stroke-width="2"/>
+<rect x="1240" y="942" width="5" height="251" rx="2" fill="#97601a"/>
+<text x="1262" y="964" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="700" fill="#97601a" text-anchor="start">Run provenance</text>
+<text x="1262" y="995" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="400" fill="#52637a" text-anchor="start">Code revision and patch</text>
+<text x="1262" y="1024" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="400" fill="#52637a" text-anchor="start">Command and random seed</text>
+<text x="1262" y="1053" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="400" fill="#52637a" text-anchor="start">Dataset and configuration</text>
+<text x="1262" y="1082" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="400" fill="#52637a" text-anchor="start">Hardware and environment</text>
+<text x="1262" y="1111" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="400" fill="#52637a" text-anchor="start">Status and timestamps</text>
+<text x="70" y="1370" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="400" fill="#52637a" text-anchor="start">Large artifacts can live externally; retain stable locations and checksums in artifacts.json.</text>
+</svg>
