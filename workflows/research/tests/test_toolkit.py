@@ -14,7 +14,7 @@ from records import content_hash,load_records,parse,sha256,yaml
 from validate_records import history_errors,policy_errors
 from check_references import reference_errors
 
-class ToolkitTests(unittest.TestCase):
+class ToolkitFixture(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
         self.root=(Path(self.temp.name)/'project with spaces').resolve()
@@ -65,6 +65,8 @@ class ToolkitTests(unittest.TestCase):
         (run/'environment.txt').write_text('Python fixture\n');r['environment']['sha256']=sha256(run/'environment.txt')
         (run/'stdout.log').write_text('partial output\n');(run/'stderr.log').write_text('')
         self.save(r);return r
+
+class ToolkitTests(ToolkitFixture):
     def test_initial_install_and_validation(self):
         self.assertEqual(len(list((self.root/'.research-toolkit/agents').glob('*.md'))),7)
         self.assertEqual(self.errors(),[])
@@ -237,6 +239,27 @@ class ToolkitTests(unittest.TestCase):
     def test_invalid_run_timestamp_is_rejected_by_schema(self):
         r=self.run_record();r['started_at']='not a timestamp';self.save(r)
         self.assertTrue(any('date-time' in e for e in self.errors()))
+    def test_timestamp_validation_without_optional_packages(self):
+        code = """
+import sys
+class BlockOptional:
+    def find_spec(self, fullname, *args):
+        if fullname in {'rfc3339_validator', 'rfc3987', 'rfc3987_syntax'}:
+            raise ImportError('deliberately unavailable')
+sys.meta_path.insert(0, BlockOptional())
+from records import FORMATS
+for value in ['bad', '2026-02-30T12:00:00Z', '2026-10-24T12:00:00',
+              '2026-10-24T12:00:00+00:60', '2026-10-24T24:00:00Z']:
+    assert not FORMATS.conforms(value, 'date-time'), value
+assert FORMATS.conforms('2026-10-24t12:00:00.123z', 'date-time')
+assert FORMATS.conforms('2026-10-24T12:00:00-04:00', 'date-time')
+assert not FORMATS.conforms('2026-02-30', 'date')
+assert FORMATS.conforms('2024-02-29', 'date')
+"""
+        result=subprocess.run([sys.executable,'-c',
+            'import sys; sys.path.insert(0,'+repr(str(TOOLKIT/'checks'))+');'+code],
+            capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
     def test_baseline_bad_yaml_is_reported(self):
         self.put('research/hypotheses/HYP-001.yaml',self.template('hypothesis'))
         path=self.root/'research/hypotheses/HYP-001.yaml';original=path.read_text();path.write_text('invalid: [')

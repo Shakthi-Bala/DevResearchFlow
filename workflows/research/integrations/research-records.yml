@@ -1,0 +1,40 @@
+name: Research records
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.13'
+      - run: python -m pip install -r .research-toolkit/requirements.txt
+      - name: Validate each committed transition
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            base=$(git merge-base "$PR_BASE" HEAD)
+          elif [ -n "$BEFORE" ] && [ "$BEFORE" != 0000000000000000000000000000000000000000 ]; then
+            base=$BEFORE
+          else
+            base=''
+          fi
+          if [ -n "$base" ]; then
+            git rev-list --reverse "$base..HEAD" > /tmp/research-commits
+          else
+            git rev-parse HEAD > /tmp/research-commits
+          fi
+          while read -r revision; do
+            python .research-toolkit/checks/validate_snapshot.py . --commit "$revision"
+          done < /tmp/research-commits

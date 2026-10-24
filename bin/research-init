@@ -35,6 +35,8 @@ def main():
     parser.add_argument('--update',action='store_true',help='update only unchanged previously installed toolkit files; preserve customizations')
     parser.add_argument('--claude',action='store_true',help='opt in to Claude Code agent files and project instructions')
     parser.add_argument('--graphify',action='store_true',help='also run graphify-init (installs/builds Graphify and its integrations)')
+    parser.add_argument('--hooks',action='store_true',help='install a staged-record pre-commit hook in a Git project; preserve existing hooks')
+    parser.add_argument('--ci',action='store_true',help='install optional GitHub Actions record validation')
     args=parser.parse_args()
     root=Path(args.project).expanduser().resolve(); root.mkdir(parents=True,exist_ok=True)
     # No installation writes may traverse a symlink within the target project.
@@ -81,9 +83,14 @@ def main():
         for path in sorted((SOURCE/folder).rglob('*')):
             if path.is_file() and '__pycache__' not in path.parts:
                 install(f'.research-toolkit/{folder}/{path.relative_to(SOURCE/folder)}',path.read_bytes())
+    for path in sorted((SOURCE/'integrations').glob('*')):
+        install(f'.research-toolkit/integrations/{path.name}',path.read_bytes())
+    if args.ci:
+        install('.github/workflows/research-records.yml',(SOURCE/'integrations/research-records.yml').read_bytes(),False)
     install('.research-toolkit/requirements.txt',(SOURCE/'requirements.txt').read_bytes())
     install('.research-toolkit/LICENSE',(TOOLKIT/'LICENSE').read_bytes())
     install('research/WORKFLOW.md',(SOURCE/'README.md').read_bytes())
+    install('research/DAILY_USE.md',(SOURCE/'DAILY_USE.md').read_bytes())
     for name,destination in [('brief.md','research/brief.md'),('state.yaml','research/state.yaml'),('question.md','research/questions/Q-001.md')]:
         install(destination,(SOURCE/'templates'/name).read_bytes(),False)
     session=b'# Session notes\n\nWorking notes here are unreviewed. Promote findings through canonical records and applicable review.\n'
@@ -113,6 +120,21 @@ def main():
     print('[research-init] next: fill research/brief.md and questions/Q-001.md; agree plan and budget with the PI')
     print('[research-init] load .research-toolkit/agents/coordinator.md in your preferred AI agent')
     print('[research-init] validate with python .research-toolkit/checks/validate_records.py .')
+    if args.hooks:
+        result=subprocess.run(['git','-C',str(root),'rev-parse','--show-toplevel'],capture_output=True,text=True)
+        if result.returncode or Path(result.stdout.strip()).resolve()!=root:
+            raise ValueError('--hooks requires the project to be the Git repository root; run git init first')
+        hook_dir=subprocess.check_output(['git','-C',str(root),'rev-parse','--git-path','hooks'],text=True).strip()
+        hook=Path(hook_dir)/'pre-commit'
+        if not hook.is_absolute(): hook=root/hook
+        # Explicit --hooks authorizes this Git metadata path, including core.hooksPath.
+        if hook.exists() or hook.is_symlink():
+            print('[research-init] preserved existing pre-commit hook; see .research-toolkit/integrations/pre-commit')
+        else:
+            hook.parent.mkdir(parents=True,exist_ok=True)
+            with hook.open('xb') as stream: stream.write((SOURCE/'integrations/pre-commit').read_bytes())
+            hook.chmod(0o755)
+            print('[research-init] installed staged-record pre-commit hook')
     if args.graphify:
         command=[str(TOOLKIT/'bin/graphify-init'),str(root)]
         if args.claude: command.append('--claude')

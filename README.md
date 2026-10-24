@@ -134,13 +134,26 @@ Commit completed changes. Do not push unless I ask.
 
 With delegation support, the coordinator invokes specialists when needed. If your
 agent cannot delegate, assign the roles across separate sessions and pass the
-versioned task records between them. Keep verification in a separate reviewer
-context from the work being evaluated.
+versioned task records between them. Keep verification in a fresh reviewer
+context, preferably using a different model, and ask it to recompute key numbers
+from raw evidence before reading author summaries.
 
 The initializer copies all seven contracts into `.research-toolkit/agents/` and
 adds a workflow block to `AGENTS.md`, preserving existing instructions. Load the
 contracts through your agent's own instruction system. Additional runtime-specific
 integrations are opt-in; inspect `research-init --help` for available options.
+
+## Less bookkeeping in daily use
+
+Try the [runnable worked example](examples/toy-ablation/README.md): it executes a
+small deterministic ablation, preserves an injected failed run, demonstrates stale
+review recovery, and ends with a contradicted hypothesis and scoped decision.
+Its review records are explicitly synthetic teaching fixtures.
+
+[Record helpers](workflows/research/DAILY_USE.md) create drafts, calculate review
+hashes and artifact checksums, and prepare frozen run provenance. They never approve
+reviews or claim execution. Optional `research-init . --hooks --ci` installs staged
+record validation and a project GitHub Actions workflow while preserving existing files.
 
 ## The seven roles
 
@@ -171,7 +184,7 @@ as scientific support.
 
 ### Verification
 
-The integration suite contains **52 tests** covering initialization, customization
+The integration suite covers initialization, customization
 preservation, stale reviews, broken references, malformed inputs, corrupted
 artifacts, run history, installed check commands, and setup-script behavior.
 
@@ -230,33 +243,10 @@ projects receive versioned copies in `.research-toolkit/agents/`. The initialize
 also creates task, question, and session folders, configurations, scripts, and a
 verification-test directory. See the [full project layout](workflows/research/README.md#installed-project-layout).
 
-## Optional: Graphify code navigation
+## Optional code navigation
 
-Graphify provides a code-navigation CLI that any agent with terminal access can
-use. The machine installer installs `uv`, the pinned Graphify CLI, and command
-shortcuts. Assistant-specific integrations are opt-in; see `./install.sh --help`.
-
-```bash
-cd ~/DevResearchFlow
-./install.sh
-export PATH="$HOME/.local/bin:$PATH"
-```
-
-Build and query the code map from your project with the CLI:
-
-```bash
-cd ~/my_research_project
-graphify extract . --code-only
-graphify cluster-only . --no-label
-graphify query "how does data loading work"
-graphify explain "SomeClass"
-graphify update .
-```
-
-Code-only extraction runs locally. Ask your agent to use the CLI for navigation
-and inspect the underlying source before making correctness claims. The
-convenience setup scripts also offer assistant-specific integrations; those are
-separate from the shared research process and Graphify CLI.
+Research initialization and validation need neither Graphify nor uv. If your project
+benefits from a generated code map, see the [optional Graphify guide](docs/graphify.md).
 
 ## Update an existing installation
 
@@ -278,8 +268,9 @@ when you also want to refresh the machine's Graphify setup.
 This is a working toolkit of agent instructions and local utilities. The
 coordinator follows the workflow in your chosen AI environment; there is no separate
 always-running orchestration service or automatic experiment launcher.
-Review prerequisites are checked when the validator runs, rather than enforced
-by an execution scheduler. Passing validation establishes structural properties,
+Review prerequisites are checked by the validator, which can run manually or through
+the optional pre-commit hook and project CI. There is no execution scheduler.
+Passing validation establishes structural properties,
 not scientific correctness. Reviewers and the principal investigator assess the
 substance of the evidence.
 
