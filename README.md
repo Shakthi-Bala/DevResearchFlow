@@ -2,7 +2,7 @@
 
 # dev_setup
 
-### A structured research workflow for Claude Code
+### A structured research workflow for any AI agent
 
 Seven agent roles · Three independent review stages · Versioned research evidence
 
@@ -17,7 +17,7 @@ experiments, and evidence-linked conclusions. A coordinator manages specialist
 agents; an independent verifier checks the experiment protocol, implementation,
 and final interpretation.
 
-The toolkit combines **Claude Code agent definitions**, **Python validation tools**,
+The toolkit combines **reusable agent role contracts**, **Python validation tools**,
 **JSON Schema record formats**, and an optional **Graphify code map**. Each research
 project retains its own evidence and history. You remain responsible for the
 research direction, budget, and final scientific interpretation.
@@ -70,8 +70,10 @@ remain the evidence to inspect.
 
 ## Quick start
 
-Requires **Python 3.10+**, **Git**, and **Claude Code**. The workflow currently
-lives on the **`dev` branch**.
+Requires **Python 3.10+**, **Git**, and **an AI agent of your choice**. The workflow
+currently lives on the **`dev` branch**. Role instructions and research records
+are reusable across agents; map role loading, tool access, and delegation to your
+chosen runtime.
 
 ### 1. Get the toolkit
 
@@ -104,13 +106,15 @@ Initialization creates the seven agent definitions, record templates, checking
 tools, and initial research brief. Existing files and customized agents are
 preserved. Experiments start only after you define the question and agree a plan.
 
-### 3. Start the coordinator
+### 3. Give your AI agent the coordinator role
 
-```bash
-claude --agent coordinator
-```
+Open your project in your preferred AI agent. Load the coordinator instructions
+from `~/dev_setup/workflows/research/agents/coordinator.md`, using your agent's
+instruction or context-loading mechanism. The other six role contracts are in
+the same folder. Adapt runtime-specific frontmatter and tool names as needed;
+the Markdown bodies define the research responsibilities.
 
-Give it a bounded question and clear limits:
+Give the coordinator a bounded question and clear limits:
 
 ```text
 Read research/WORKFLOW.md and research/brief.md. Use all seven agent roles.
@@ -125,8 +129,15 @@ Preserve failed runs, contradictory evidence, and uncertainty.
 Commit completed changes. Do not push unless I ask.
 ```
 
-The coordinator invokes specialists when needed. You do not need to launch seven
-separate sessions.
+With delegation support, the coordinator invokes specialists when needed. If your
+agent cannot delegate, assign the roles across separate sessions and pass the
+versioned task records between them. Keep verification in a separate reviewer
+context from the work being evaluated.
+
+The current initializer also writes integration files using a particular agent's
+folder conventions. Other runtimes should load the reusable role contracts above
+and register them through their own instruction system; automatic adapters for
+every runtime are not included.
 
 ## The seven roles
 
@@ -172,12 +183,7 @@ python3 -m unittest discover -s workflows/research/tests -v
 
 ## Everyday use
 
-Resume a project:
-
-```bash
-cd ~/my_research_project
-claude --agent coordinator
-```
+Reopen the project in your preferred AI agent, load the coordinator role, and ask:
 
 > Read the brief, current state, and recent decisions. Summarize progress, identify
 > blockers, and continue within the agreed plan and budget.
@@ -198,7 +204,6 @@ Also compare allowed status changes and run history against the latest commit:
 
 ```text
 my_research_project/
-├── .claude/agents/        Seven role definitions
 ├── .research-toolkit/     Schemas, templates, and validation tools
 ├── research/
 │   ├── brief.md           Question, constraints, budget
@@ -216,35 +221,38 @@ my_research_project/
 └── graphify-out/          Optional generated code index
 ```
 
-The initializer also creates task, question, and session folders, configurations,
-scripts, and a verification-test directory. See the [full project layout](workflows/research/README.md#installed-project-layout).
+The reusable role contracts live in `workflows/research/agents/` in this toolkit.
+The initializer also creates agent integration files, task, question, and session
+folders, configurations, scripts, and a verification-test directory. See the [full project layout](workflows/research/README.md#installed-project-layout).
 
 ## Optional: Graphify code navigation
 
-Run the machine installer to install `uv`, the pinned Graphify CLI, its Claude
-Code skill, and command shortcuts. Claude Code itself is installed separately.
+Graphify provides a code-navigation CLI that any agent with terminal access can
+use. The machine installer installs `uv`, the pinned Graphify CLI, and command
+shortcuts. It also writes tool-specific assistant integrations; inspect `install.sh`
+if you want to manage those separately.
 
 ```bash
 cd ~/dev_setup
 ./install.sh
 export PATH="$HOME/.local/bin:$PATH"
-
-cd ~/my_research_project
-graphify-init
 ```
 
-The default extraction builds the code map locally and installs Claude Code
-integration and Git hooks to refresh it. Optionally run `/graphify .` inside
-Claude Code to add document concepts and community names; that step uses session tokens.
+Build and query the code map from your project with the CLI:
 
 ```bash
+cd ~/my_research_project
+graphify extract . --code-only
+graphify cluster-only . --no-label
 graphify query "how does data loading work"
 graphify explain "SomeClass"
 graphify update .
 ```
 
-After machine setup, `research-init ~/my_research_project --graphify` sets up both
-the research workflow and code map.
+Code-only extraction runs locally. Ask your agent to use the CLI for navigation
+and inspect the underlying source before making correctness claims. The
+convenience setup scripts also offer assistant-specific integrations; those are
+separate from the shared research process and Graphify CLI.
 
 ## Update an existing installation
 
@@ -262,7 +270,7 @@ when you also want to refresh the machine's Graphify setup.
 ## Current scope
 
 This is a working toolkit of agent instructions and local utilities. The
-coordinator follows the workflow inside Claude Code; there is no separate
+coordinator follows the workflow in your chosen AI environment; there is no separate
 always-running orchestration service or automatic experiment launcher.
 Review prerequisites are checked when the validator runs, rather than enforced
 by an execution scheduler. Passing validation establishes structural properties,
