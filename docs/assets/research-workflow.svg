@@ -30,8 +30,8 @@
   <text x="64" y="253" class="phase">Ask a testable question</text>
   <text x="64" y="293" class="role">Coordinator</text>
   <text x="64" y="315" class="detail">Scope, constraints, and task contracts</text>
-  <text x="64" y="349" class="role">Literature + hypothesis researchers</text>
-  <text x="64" y="371" class="detail">Primary sources and competing explanations</text>
+  <text x="64" y="349" class="role">Literature + hypothesis</text>
+  <text x="64" y="371" class="detail">Sources, mechanisms, and alternatives</text>
   <text x="64" y="405" class="role">Methodology designer</text>
   <text x="64" y="427" class="detail">Baselines, metrics, and experiment protocol</text>
   <rect x="60" y="451" width="310" height="44" rx="9" fill="#123f43" stroke="#29786f"/>
@@ -40,22 +40,22 @@
   <text x="449" y="221" class="number">02 / BUILD</text>
   <text x="449" y="253" class="phase">Implement and execute</text>
   <text x="449" y="293" class="role">Research engineer</text>
-  <text x="449" y="315" class="detail">Code, configuration, and numerical checks</text>
+  <text x="449" y="315" class="detail">Code, config, and numerical checks</text>
   <rect x="445" y="337" width="310" height="44" rx="9" fill="#123f43" stroke="#29786f"/>
   <text x="461" y="364" class="review">REVIEW 2 / Does the code match?</text>
   <text x="449" y="414" class="role">Research engineer</text>
   <text x="449" y="437" class="detail">Execute within the agreed budget</text>
-  <text x="449" y="464" class="detail">Save commands, settings, logs, and outputs</text>
+  <text x="449" y="464" class="detail">Save commands, logs, and outputs</text>
   <text x="449" y="487" class="detail">Keep failed and interrupted runs</text>
 
   <text x="834" y="221" class="number">03 / EVALUATE</text>
   <text x="834" y="253" class="phase">Interpret the evidence</text>
   <text x="834" y="293" class="role">Results analyst</text>
-  <text x="834" y="315" class="detail">Reproducible measurements and uncertainty</text>
+  <text x="834" y="315" class="detail">Measurements and uncertainty</text>
   <rect x="830" y="337" width="310" height="44" rx="9" fill="#123f43" stroke="#29786f"/>
   <text x="846" y="364" class="review">REVIEW 3 / Is the claim justified?</text>
   <text x="834" y="414" class="role">Coordinator + you</text>
-  <text x="834" y="437" class="detail">Continue, revise, reject, or leave unresolved</text>
+  <text x="834" y="437" class="detail">Continue / revise / reject / unresolved</text>
   <text x="834" y="464" class="detail">Record the outcome and its limits</text>
   <text x="834" y="487" class="detail">Verifier handles all three review stages</text>
 
