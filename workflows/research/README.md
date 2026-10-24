@@ -5,7 +5,7 @@ principal investigator (PI). All seven roles exist and run when needed; they do
 not need seven continuously running sessions. The coordinator assigns tasks and
 routes corrections. The verifier performs three distinct reviews.
 
-This toolkit installs Claude Code agents and local validation utilities. It does
+This toolkit provides reusable agent role contracts and local validation utilities. It does
 not automatically launch experiments, grant compute budgets, or establish the
 scientific validity of a result. Agent instructions define writing ownership;
 they are not filesystem access controls. A single coordinator owns Git operations
@@ -26,7 +26,6 @@ In the project:
 python3 -m venv .venv-research
 .venv-research/bin/python -m pip install -r .research-toolkit/requirements.txt
 .venv-research/bin/python .research-toolkit/checks/validate_records.py .
-claude --agent coordinator
 ```
 
 Example initial instruction:
@@ -37,12 +36,24 @@ Example initial instruction:
 > failures and uncertainty. Commit completed updates; do not push unless I ask.
 
 Fill `research/brief.md` and `research/questions/Q-001.md`. Their initial draft
-placeholders are not an agreed research plan. Inspect agents with `/agents` or
-restart Claude Code if it has not discovered the new project agents. Run the
-coordinator as the main agent with `claude --agent coordinator`, so it can invoke
-specialists without relying on nested subagent support. Specialists return their
-handoffs to it. Models inherit the session defaults; no model or permission bypass
-is forced. Definitions follow the [official Claude Code subagent format](https://code.claude.com/docs/en/sub-agents).
+placeholders are not an agreed research plan.
+
+Open the project in your preferred AI agent. Load the coordinator contract from
+`workflows/research/agents/coordinator.md` in the toolkit checkout. Load the other
+six contracts from the same folder when assigning specialist tasks. Map the
+runtime-specific frontmatter, tool names, and delegation mechanism to your own
+agent environment; the Markdown bodies define the reusable research contracts.
+
+Use native delegation when supported. Otherwise assign roles to separate sessions
+and pass self-contained task records between them. Keep the independent reviewer
+in a separate context from the implementation or conclusion it evaluates. Models
+and permission settings are controlled by your chosen environment.
+
+The initializer currently copies role definitions and a project instruction block
+using one runtime's conventions. Those convenience integrations do not constitute
+adapters for every agent. For other runtimes, register the original role contracts
+through their own instruction system. Research records and Python checks remain
+shared across environments.
 
 ## Controlled loop
 
@@ -102,9 +113,7 @@ results, and known deviations.
 ## Installed project layout
 
 ```text
-.claude/agents/           seven copied role definitions
 .research-toolkit/       copied schemas, templates, checks, requirements
-CLAUDE.md                research instruction block; existing content retained
 .gitignore               local validation environment and Python caches ignored
 research/
   WORKFLOW.md            this operating procedure
@@ -124,6 +133,10 @@ research/
 src/ configs/ scripts/ analysis/ tests/verification/
 runs/RUN-001/            manifest.yaml and actual execution evidence
 ```
+
+The initializer also writes runtime-specific agent integration files; inspect
+`bin/research-init` for exact paths. Reusable role contracts are available in
+`workflows/research/agents/` in the toolkit checkout.
 
 The initializer creates directories and the initial question, brief, and state.
 It does not fabricate source notes, hypotheses, experiments, reviews, or runs.
@@ -237,7 +250,7 @@ installed check commands. They do not launch model sessions or experiments.
 Definitions are copied rather than symlinked, so toolkit updates do not silently
 change a project's governing instructions. `research-init PROJECT --update`
 refreshes only previously managed, unchanged files and installs missing files.
-Customized files, scientific records, and existing CLAUDE.md content are preserved.
+Customized files, scientific records, and existing project instructions are preserved.
 Review customized agents manually against the new definitions. The metadata tracks
 each file's installed hash and originating revision, plus dirty-source state;
 mixed revisions remain visible. Existing projects are never silently committed.
