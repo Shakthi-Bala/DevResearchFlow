@@ -1,30 +1,90 @@
+<div align="center">
+
 # dev_setup
 
-Tools for running research projects with Claude Code:
+### A structured research workflow for Claude Code
 
-- **Research workflow:** seven agent roles plan, investigate, implement, review, and analyze your work.
-- **Code map:** Graphify helps agents find relevant files, functions, and code relationships.
+Seven agent roles · Three independent review stages · Versioned research evidence
 
-You provide the research question and budget. The coordinator organizes the work.
-Each project keeps its own evidence, experiment results, and decisions.
+[Quick start](#quick-start) · [Architecture](#architecture) · [Engineering](#engineering-decisions) · [Usage](#everyday-use) · [Detailed guide](workflows/research/README.md)
 
-## 1. Get the toolkit
+</div>
 
-The research workflow currently lives on the **`dev` branch**. On a new machine:
+![Seven-role research workflow showing planning, engineering, analysis, and three verifier reviews](docs/assets/research-workflow.svg)
+
+`dev_setup` turns a research question into a sequence of defined tasks, reviewed
+experiments, and evidence-linked conclusions. A coordinator manages specialist
+agents; an independent verifier checks the experiment protocol, implementation,
+and final interpretation.
+
+The toolkit combines **Claude Code agent definitions**, **Python validation tools**,
+**JSON Schema record formats**, and an optional **Graphify code map**. Each research
+project retains its own evidence and history. You remain responsible for the
+research direction, budget, and final scientific interpretation.
+
+## The problem it addresses
+
+An agent's answer is easier to trust when you can inspect the source, the code,
+the command that ran, and the limits of the result. Research also needs a record
+of failures, alternative explanations, and evidence that contradicts a conclusion.
+
+This project makes those records part of the workflow:
+
+| Research need | Implemented approach |
+| --- | --- |
+| Clear responsibilities | Seven role contracts with assigned writing areas and handoff requirements. |
+| Review before execution | Separate protocol and implementation reviews before substantial experiments. |
+| Traceable conclusions | Claims link to observations, sources, reviews, and explicit scope. |
+| Reproducible run records | Frozen protocols, code revisions, configuration hashes, commands, and raw artifacts. |
+| Safe reuse across projects | An initializer that preserves customizations and records installed toolkit versions. |
+| Detectable record errors | Schema, reference, checksum, review-prerequisite, and Git history checks. |
+
+## Architecture
+
+The reusable toolkit lives in `dev_setup`. Scientific records belong to the
+project where the research happens.
+
+```mermaid
+flowchart TB
+    T["dev_setup toolkit<br/>Agent contracts · Schemas · Templates · Checks"]
+    T -->|research-init: versioned copies| P
+    subgraph P["Your research project"]
+        C["Coordinator<br/>Scope, task ownership, handoffs"]
+        S["Specialists<br/>Literature · Hypothesis · Methodology<br/>Engineering · Verification · Analysis"]
+        K["Research records<br/>Sources, protocols, observations,<br/>claims, reviews, decisions"]
+        R["Run evidence<br/>Commands, configuration, logs,<br/>metrics, artifacts"]
+        G["Graphify code map<br/>Files, symbols, relationships"]
+        C --> S
+        S --> K
+        S --> R
+        S -->|Locate code, then inspect source| G
+        R -->|Supports analysis| K
+    end
+    K --> V["Python validators<br/>Structure · References · Provenance · Review prerequisites"]
+```
+
+**Research records store scientific knowledge; Graphify indexes the implementation.**
+Agents connect them through file paths, qualified symbols, and Git revisions.
+The generated code graph is a navigation aid; the underlying records and artifacts
+remain the evidence to inspect.
+
+## Quick start
+
+Requires **Python 3.10+**, **Git**, and **Claude Code**. The workflow currently
+lives on the **`dev` branch**.
+
+### 1. Get the toolkit
 
 ```bash
 git clone --branch dev https://github.com/Shakthi-Bala/dev_setup.git ~/dev_setup
 ```
 
-If you already have this repository, use your existing checkout.
-The examples below assume it is at `~/dev_setup`; replace that path if you cloned
-it somewhere else. You need Python 3.10+, Git, and Claude Code available.
+Already cloned it? Use your existing checkout. Replace `~/dev_setup` below with
+its actual location if different.
 
-## 2. Set up a research project
+### 2. Prepare your project
 
-The examples use `~/my_research_project`. Replace it with your project's folder.
-
-For a **new project**:
+For a new project:
 
 ```bash
 mkdir -p ~/my_research_project
@@ -32,170 +92,150 @@ cd ~/my_research_project
 git init
 ```
 
-For an **existing project**, just open its folder:
-
-```bash
-cd ~/my_research_project
-```
-
-Install the workflow into that project:
+For an existing project, open its folder instead. Then install the workflow:
 
 ```bash
 ~/dev_setup/bin/research-init .
-```
-
-This creates the agent instructions and research folders. It preserves existing
-project files and customized agents. It does not start experiments.
-
-Set up the record checker once inside the project:
-
-```bash
 python3 -m venv .venv-research
 .venv-research/bin/python -m pip install -r .research-toolkit/requirements.txt
 ```
 
-The checker finds missing fields, broken references, and missing reviews in your
-research records.
+Initialization creates the seven agent definitions, record templates, checking
+tools, and initial research brief. Existing files and customized agents are
+preserved. Experiments start only after you define the question and agree a plan.
 
-## 3. Start the coordinator
-
-From your project folder:
+### 3. Start the coordinator
 
 ```bash
 claude --agent coordinator
 ```
 
-Paste this into the Claude Code conversation, replacing the bracketed parts:
+Give it a bounded question and clear limits:
 
 ```text
 Read research/WORKFLOW.md and research/brief.md. Use all seven agent roles.
 
-My research question is: [what you want to investigate].
-My constraints are: [dataset, hardware, deadline, and other limits].
-My compute and token budget is: [your limits].
+Research question: [what you want to investigate]
+Constraints: [dataset, hardware, deadline, and other limits]
+Compute and token budget: [your limits]
 
-Help me fill in the brief and agree an initial plan before substantial experiments.
-Manage the specialist handoffs and the three verifier reviews.
+Help me complete the brief and agree an initial plan before substantial experiments.
+Manage specialist handoffs and the protocol, implementation, and evidence reviews.
 Preserve failed runs, contradictory evidence, and uncertainty.
 Commit completed changes. Do not push unless I ask.
 ```
 
-You do not need to manually start seven sessions. The coordinator calls the
-specialists when needed. You control the initial direction, budget, major changes,
-and final interpretation.
+The coordinator invokes specialists when needed. You do not need to launch seven
+separate sessions.
 
-## 4. Understand the workflow
+## The seven roles
 
-| Agent | What it does |
+| Role | Responsibility | Main output |
+| --- | --- | --- |
+| **Coordinator** | Scope the question, assign tasks, route corrections, and report progress. | Brief, task contracts, state, decisions. |
+| **Literature researcher** | Read primary sources and separate author claims from reproduced findings. | Source notes with exact passages and limitations. |
+| **Hypothesis researcher** | Propose mechanisms, competing explanations, and falsification conditions. | Testable hypotheses and alternatives. |
+| **Methodology designer** | Define baselines, controls, metrics, repetitions, and resource limits. | Versioned experiment protocol. |
+| **Research engineer** | Implement reviewed protocols, execute experiments, and preserve evidence. | Code, checks, run manifests, logs, artifacts. |
+| **Independent verifier** | Challenge the protocol, implementation, and conclusions. | Three distinct review reports with findings and uncertainty. |
+| **Results analyst** | Compute measurements and assess uncertainty, failures, and claim scope. | Reproducible analysis, observations, proposed interpretations. |
+
+Corrections return through the coordinator. A negative or inconclusive outcome is
+preserved with its evidence and limitations. Agent agreement alone does not count
+as scientific support.
+
+## Engineering decisions
+
+| Decision | Why it matters |
 | --- | --- |
-| Coordinator | Talks with you, makes the plan, assigns work, and tracks progress. |
-| Literature researcher | Reads primary sources and records what they actually support. |
-| Hypothesis researcher | Suggests explanations, alternatives, and ways to test them. |
-| Methodology designer | Defines the experiment, comparisons, measurements, and budget. |
-| Engineer | Writes code, runs experiments, and saves execution evidence. |
-| Verifier | Independently checks the plan, implementation, and conclusions. |
-| Analyst | Computes results, reports uncertainty, and interprets the evidence. |
+| **Copy project instructions and record their origin** | A toolkit update does not silently change a project's governing instructions. |
+| **One assigned writer per file** | Ownership and handoffs reduce competing edits to shared research records. |
+| **Separate observations from claims** | Interpretations can change while the original measurements remain intact. |
+| **Pin review targets and artifact checksums** | Changed evidence or protocols can be detected instead of silently reusing a stale review. |
+| **Preserve terminal run records** | Optional Git-baseline checks detect modified or deleted execution manifests. |
+| **Separate structural and scientific review** | Deterministic tools check records; the verifier assesses whether the evidence supports the conclusion. |
 
-The work follows this order:
+### Verification
 
-```text
-Your question and budget
-  → Coordinator makes the plan
-  → Literature researcher gathers evidence
-  → Hypothesis researcher proposes explanations
-  → Methodology designer writes the experiment plan
-  → Verifier checks the plan                 [review 1]
-  → Engineer implements it
-  → Verifier checks the implementation       [review 2]
-  → Engineer runs the experiment
-  → Analyst analyzes the results
-  → Verifier checks the conclusions          [review 3]
-  → Coordinator reports the outcome to you
+The integration suite contains **26 tests** covering initialization, customization
+preservation, stale reviews, broken references, corrupted artifacts, run history,
+and installed validation commands.
+
+With the validation dependencies available:
+
+```bash
+python3 -m unittest discover -s workflows/research/tests -v
 ```
 
-If a review finds a problem, the coordinator sends it back for correction.
-Negative and inconclusive results are kept too. Passing the record checker means
-the records meet its structural checks; the verifier still judges the evidence.
+[Inspect the test suite](workflows/research/tests/test_toolkit.py) ·
+[Inspect the validation tools](workflows/research/checks/)
 
-## 5. Find your work and results
+## Everyday use
 
-These folders belong to **your research project**, not to `dev_setup`:
-
-| Location | What you will find |
-| --- | --- |
-| `research/brief.md` | Your question, scope, constraints, and budget. Start here. |
-| `research/state.yaml` | Current tasks, blockers, and the next decision. |
-| `research/sources/` | Paper notes and exact supporting passages. |
-| `research/hypotheses/` | Proposed explanations and how to disprove them. |
-| `research/experiments/` | Experiment plans written before execution. |
-| `runs/` | Actual commands, settings, logs, outputs, and run status. |
-| `research/observations/` | Measurements from runs. |
-| `research/claims/` | Interpretations linked to supporting and contradicting evidence. |
-| `research/reviews/` | What the verifier checked and what remains uncertain. |
-| `research/decisions/` | Decisions and the reasons behind them. |
-| `.claude/agents/` | The seven project-local agent definitions. |
-| `.research-toolkit/` | Templates and record-checking tools. |
-| `graphify-out/` | The generated code map, if you enable Graphify. |
-
-**Research records store scientific evidence. Graphify maps the code.**
-Agents connect them using file paths, function names, and Git revisions.
-
-## 6. Continue work later
-
-Open your project and start the coordinator again:
+Resume a project:
 
 ```bash
 cd ~/my_research_project
 claude --agent coordinator
 ```
 
-For example, ask:
+> Read the brief, current state, and recent decisions. Summarize progress, identify
+> blockers, and continue within the agreed plan and budget.
 
-> Read the brief, current state, and recent decisions. Summarize where we are,
-> identify blockers, and continue within the agreed plan and budget.
-
-To check the records yourself, run this from the project folder:
+Check its records:
 
 ```bash
 .venv-research/bin/python .research-toolkit/checks/validate_records.py .
 ```
 
-To also compare status changes and saved run records against the latest Git commit:
+Also compare allowed status changes and run history against the latest commit:
 
 ```bash
 .venv-research/bin/python .research-toolkit/checks/validate_records.py . --base-ref HEAD
 ```
 
-The agents are instructed to use the reviews and check commands. These are
-workflow instructions and manual checks; an always-running service does not enforce them.
+### Where to find things
 
-## 7. Add the Graphify code map (optional)
+```text
+my_research_project/
+├── .claude/agents/        Seven role definitions
+├── .research-toolkit/     Schemas, templates, and validation tools
+├── research/
+│   ├── brief.md           Question, constraints, budget
+│   ├── state.yaml         Active work, blockers, next decision
+│   ├── sources/           Primary-source notes
+│   ├── hypotheses/        Explanations and planned tests
+│   ├── experiments/       Protocols defined before execution
+│   ├── observations/      Recorded measurements
+│   ├── claims/            Scoped interpretations and evidence links
+│   ├── reviews/           Independent review findings
+│   └── decisions/         Outcomes and their rationale
+├── runs/                  Actual execution evidence, including failures
+├── src/                   Implementation
+├── analysis/              Reproducible analysis scripts
+└── graphify-out/          Optional generated code index
+```
 
-Run the machine installer once:
+The initializer also creates task, question, and session folders, configurations,
+scripts, and a verification-test directory. See the [full project layout](workflows/research/README.md#installed-project-layout).
+
+## Optional: Graphify code navigation
+
+Run the machine installer to install `uv`, the pinned Graphify CLI, its Claude
+Code skill, and command shortcuts. Claude Code itself is installed separately.
 
 ```bash
 cd ~/dev_setup
 ./install.sh
 export PATH="$HOME/.local/bin:$PATH"
-```
 
-It installs `uv`, the pinned Graphify CLI, its Claude Code skill, and shortcuts
-for `graphify-init` and `research-init`. Claude Code itself is installed separately.
-
-Then, inside your project:
-
-```bash
 cd ~/my_research_project
 graphify-init
 ```
 
-This builds the code map, adds Claude Code integration, and installs Git hooks
-that refresh the map. The default extraction is code-only and runs locally.
-
-Optionally, run `/graphify .` **inside Claude Code** to add document concepts and
-community names. This extra step uses session tokens.
-
-Useful terminal commands:
+The default extraction builds the code map locally and installs Claude Code
+integration and Git hooks to refresh it. Optionally run `/graphify .` inside
+Claude Code to add document concepts and community names; that step uses session tokens.
 
 ```bash
 graphify query "how does data loading work"
@@ -203,36 +243,31 @@ graphify explain "SomeClass"
 graphify update .
 ```
 
-After the machine installer, you can also set up both tools together:
+After machine setup, `research-init ~/my_research_project --graphify` sets up both
+the research workflow and code map.
 
-```bash
-research-init ~/my_research_project --graphify
-```
-
-## 8. Update the toolkit and your projects
-
-Update the toolkit checkout:
+## Update an existing installation
 
 ```bash
 cd ~/dev_setup
 git switch dev
 git pull --ff-only
-```
-
-Refresh an existing project's copied workflow files:
-
-```bash
 ./bin/research-init ~/my_research_project --update
 ```
 
-This updates unchanged toolkit files and preserves local customizations and
-research records. Review the changes and commit them in the project.
-Run `./install.sh` again if you also want to refresh the machine's Graphify setup.
+Unchanged managed files are refreshed; local customizations and scientific
+records are preserved. Review and commit project updates. Rerun `./install.sh`
+when you also want to refresh the machine's Graphify setup.
 
-## Diagrams and detailed instructions
+## Current scope
 
-- [Research workflow](01_research_workflow.svg)
-- [Reusable toolkit folders](02_dev_setup_folders.svg)
-- [Per-project folders](03_project_folders.svg)
-- [Research memory and Graphify](04_memory_and_graphify.svg)
-- [Detailed operating guide](workflows/research/README.md): record formats, review rules, provenance, and validation.
+This is a working toolkit of agent instructions and local utilities. The
+coordinator follows the workflow inside Claude Code; there is no separate
+always-running orchestration service or automatic experiment launcher.
+Review prerequisites are checked when the validator runs, rather than enforced
+by an execution scheduler. Passing validation establishes structural properties,
+not scientific correctness. Reviewers and the principal investigator assess the
+substance of the evidence.
+
+For record formats, review dispositions, provenance rules, and reproducibility
+details, read the [research operating guide](workflows/research/README.md).

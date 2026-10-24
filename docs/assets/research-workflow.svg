@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="650" viewBox="0 0 1200 650" role="img" aria-labelledby="title desc">
+  <title id="title">Research workflow: seven agent roles and three independent reviews</title>
+  <desc id="desc">The principal investigator sets the question and budget. The coordinator routes literature, hypotheses, and experiment design through protocol review, engineering through implementation review, and analysis through evidence review. Corrections return to the responsible stage. Each project retains records, raw runs, and decisions.</desc>
+  <defs>
+    <linearGradient id="background" x2="1" y2="1"><stop stop-color="#0c172b"/><stop offset="1" stop-color="#172942"/></linearGradient>
+    <linearGradient id="accent"><stop stop-color="#5eead4"/><stop offset="1" stop-color="#60a5fa"/></linearGradient>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 8 4 0 8" fill="none" stroke="#8ba6c4" stroke-width="1.5"/></marker>
+    <style>
+      text{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+      .eyebrow{font-size:13px;font-weight:700;letter-spacing:2px;fill:#5eead4}
+      .heading{font-size:34px;font-weight:750;fill:#f8fafc}
+      .subtitle{font-size:16px;fill:#b8c9dc}
+      .phase{font-size:20px;font-weight:700;fill:#f1f5f9}
+      .role{font-size:16px;font-weight:650;fill:#e2e8f0}
+      .detail{font-size:14px;fill:#afc1d5}
+      .review{font-size:14px;font-weight:650;fill:#99f6e4}
+      .number{font-size:13px;font-weight:700;fill:#8ba6c4}
+    </style>
+  </defs>
+  <rect width="1200" height="650" rx="24" fill="url(#background)"/>
+  <rect x="40" y="37" width="46" height="4" rx="2" fill="url(#accent)"/>
+  <text x="40" y="70" class="eyebrow">DEV_SETUP / RESEARCH WORKFLOW</text>
+  <text x="40" y="117" class="heading">Seven roles. Three reviews. One evidence trail.</text>
+  <text x="40" y="151" class="subtitle">You set the question and budget. The coordinator manages the handoffs.</text>
+
+  <rect x="40" y="189" width="350" height="330" rx="16" fill="#14243b" stroke="#304661"/>
+  <rect x="425" y="189" width="350" height="330" rx="16" fill="#14243b" stroke="#304661"/>
+  <rect x="810" y="189" width="350" height="330" rx="16" fill="#14243b" stroke="#304661"/>
+  <text x="64" y="221" class="number">01 / DEFINE</text>
+  <text x="64" y="253" class="phase">Ask a testable question</text>
+  <text x="64" y="293" class="role">Coordinator</text>
+  <text x="64" y="315" class="detail">Scope, constraints, and task contracts</text>
+  <text x="64" y="349" class="role">Literature + hypothesis researchers</text>
+  <text x="64" y="371" class="detail">Primary sources and competing explanations</text>
+  <text x="64" y="405" class="role">Methodology designer</text>
+  <text x="64" y="427" class="detail">Baselines, metrics, and experiment protocol</text>
+  <rect x="60" y="451" width="310" height="44" rx="9" fill="#123f43" stroke="#29786f"/>
+  <text x="76" y="478" class="review">REVIEW 1 / Is the protocol ready?</text>
+
+  <text x="449" y="221" class="number">02 / BUILD</text>
+  <text x="449" y="253" class="phase">Implement and execute</text>
+  <text x="449" y="293" class="role">Research engineer</text>
+  <text x="449" y="315" class="detail">Code, configuration, and numerical checks</text>
+  <rect x="445" y="337" width="310" height="44" rx="9" fill="#123f43" stroke="#29786f"/>
+  <text x="461" y="364" class="review">REVIEW 2 / Does the code match?</text>
+  <text x="449" y="414" class="role">Research engineer</text>
+  <text x="449" y="437" class="detail">Execute within the agreed budget</text>
+  <text x="449" y="464" class="detail">Save commands, settings, logs, and outputs</text>
+  <text x="449" y="487" class="detail">Keep failed and interrupted runs</text>
+
+  <text x="834" y="221" class="number">03 / EVALUATE</text>
+  <text x="834" y="253" class="phase">Interpret the evidence</text>
+  <text x="834" y="293" class="role">Results analyst</text>
+  <text x="834" y="315" class="detail">Reproducible measurements and uncertainty</text>
+  <rect x="830" y="337" width="310" height="44" rx="9" fill="#123f43" stroke="#29786f"/>
+  <text x="846" y="364" class="review">REVIEW 3 / Is the claim justified?</text>
+  <text x="834" y="414" class="role">Coordinator + you</text>
+  <text x="834" y="437" class="detail">Continue, revise, reject, or leave unresolved</text>
+  <text x="834" y="464" class="detail">Record the outcome and its limits</text>
+  <text x="834" y="487" class="detail">Verifier handles all three review stages</text>
+
+  <path d="M394 352 H416" fill="none" stroke="#8ba6c4" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M779 352 H801" fill="none" stroke="#8ba6c4" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="40" y="548" class="detail">Corrections return to the responsible stage. Negative and inconclusive outcomes remain part of the record.</text>
+  <rect x="40" y="571" width="1120" height="48" rx="10" fill="#0d1c30" stroke="#304661"/>
+  <text x="60" y="601" class="role">PROJECT MEMORY</text>
+  <text x="249" y="601" class="detail">Sources → hypotheses → protocols → runs → observations → claims → reviews → decisions</text>
+</svg>
