@@ -2,6 +2,9 @@
 # Validate the exact staged tree. Existing hooks are never overwritten.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
+if command -v drf >/dev/null; then
+  exec drf check --staged
+fi
 PYTHON=python3
 if [ -x .venv-research/bin/python ]; then PYTHON=.venv-research/bin/python; fi
 exec "$PYTHON" .research-toolkit/checks/validate_snapshot.py . --staged

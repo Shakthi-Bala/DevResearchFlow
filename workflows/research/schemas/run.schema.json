@@ -154,6 +154,10 @@
         "manifest_sha256": {
           "type": "string",
           "pattern": "^[0-9a-f]{64}$"
+        },
+        "manifest_path": {
+          "type": "string",
+          "minLength": 1
         }
       },
       "additionalProperties": false
@@ -320,6 +324,73 @@
         }
       },
       "additionalProperties": false
+    },
+    "author": {
+      "type": "object",
+      "required": [
+        "role",
+        "model",
+        "session"
+      ],
+      "properties": {
+        "role": {
+          "enum": [
+            "coordinator",
+            "literature",
+            "hypothesis",
+            "methodology",
+            "engineer",
+            "verifier",
+            "analyst",
+            "human"
+          ]
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "session": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "execution": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "registration_commit": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40,64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "additionalProperties": false

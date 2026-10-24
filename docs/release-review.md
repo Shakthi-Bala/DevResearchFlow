@@ -49,3 +49,27 @@ These local results do not confirm the subsequent GitHub-hosted CI runs.
 The example executes real local commands but labels every scripted review as a
 synthetic fixture. A real thesis pilot remains future work. A separate lite policy
 is deferred pending experience; existing exploratory mode retains review gates.
+
+## 0.3.0 roadmap validation
+
+The roadmap implementation passed **88 tests on Python 3.10.22 and 3.13.5**.
+The Python 3.13 run measured **84% combined statement/branch coverage**, including
+subprocess execution and project-local copied checkers. Coverage is an exercised
+code metric, not a guarantee of correctness.
+
+Additional checks passed: Ruff lint/format, mypy on the five CLI/provenance/runner
+modules, generated state-diagram consistency, local documentation links, Python
+and shell syntax, JSON schema syntax, and Git whitespace. Both source distribution
+and wheel built successfully. A clean wheel environment outside the checkout
+initialized a strict project, ran the CLI checks, and committed through its default
+hook; final packaged resources matched the source files.
+
+The real runner was exercised for success, command failure, timeout, cancellation,
+changed code/data, receipt tampering, and confirmatory registration. Reviewer/code
+self-review and policy downgrade regressions are covered. The worked example now
+uses strict policy and runner-generated evidence while retaining explicitly
+synthetic review fixtures.
+
+GitHub-hosted CI results and live Codex/Claude role-profile enforcement still
+require separate confirmation. No thesis pilot, external signing service, remote
+branch-protection change, PyPI publication, or model session was performed.
