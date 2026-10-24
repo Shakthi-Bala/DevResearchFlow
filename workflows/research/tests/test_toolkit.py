@@ -14,7 +14,7 @@ from records import content_hash,load_records,parse,sha256,yaml
 from validate_records import history_errors,policy_errors
 from check_references import reference_errors
 
-class ToolkitTests(unittest.TestCase):
+class ToolkitFixture(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
         self.root=(Path(self.temp.name)/'project with spaces').resolve()
@@ -65,6 +65,8 @@ class ToolkitTests(unittest.TestCase):
         (run/'environment.txt').write_text('Python fixture\n');r['environment']['sha256']=sha256(run/'environment.txt')
         (run/'stdout.log').write_text('partial output\n');(run/'stderr.log').write_text('')
         self.save(r);return r
+
+class ToolkitTests(ToolkitFixture):
     def test_initial_install_and_validation(self):
         self.assertEqual(len(list((self.root/'.research-toolkit/agents').glob('*.md'))),7)
         self.assertEqual(self.errors(),[])

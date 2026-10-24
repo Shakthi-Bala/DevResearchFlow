@@ -2,7 +2,7 @@ name: Test
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
 
 permissions:
@@ -36,5 +36,5 @@ jobs:
         run: python -m unittest discover -s workflows/research/tests -v
       - name: Check shell syntax and whitespace
         run: |
-          bash -n install.sh bin/graphify-init
+          bash -n install.sh bin/graphify-init workflows/research/integrations/pre-commit
           git show --format= --check HEAD
