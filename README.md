@@ -283,6 +283,15 @@ substance of the evidence.
 For record formats, review dispositions, provenance rules, and reproducibility
 details, read the [research operating guide](workflows/research/README.md).
 
+## Acknowledgements
+
+[Graphify](https://github.com/Graphify-Labs/graphify) provides the optional code
+graph and navigation tools used by DevResearchFlow. Thank you to the Graphify
+maintainers and contributors for their work.
+
+The research workflow, agent contracts, evidence schemas, and validation utilities
+are developed in this repository.
+
 ## License
 
 [MIT](LICENSE). See the [release review](docs/release-review.md) for validation
