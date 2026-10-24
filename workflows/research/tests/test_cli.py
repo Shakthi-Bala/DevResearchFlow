@@ -1,6 +1,7 @@
 """Test installed CLI routing, migration safety, default hooks and role profiles."""
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -14,6 +15,12 @@ class CliTests(ToolkitFixture):
             [sys.executable, "-m", "devresearchflow", "--project", str(self.root), *args],
             capture_output=True,
             text=True,
+            env={
+                **os.environ,
+                "PYTHONPATH": str(Path(__file__).resolve().parents[3] / "src")
+                + os.pathsep
+                + os.environ.get("PYTHONPATH", ""),
+            },
         )
 
     def test_commands_and_subcommand_help(self):
@@ -106,7 +113,10 @@ class CliTests(ToolkitFixture):
         config = json.loads(
             (self.root / ".research-toolkit/permissions/verifier.claude.json").read_text()
         )
-        self.assertIn("Bash", config["permissions"]["deny"])
+        self.assertNotIn("Bash", config["permissions"]["deny"])
+        self.assertEqual(
+            len([v for v in config["permissions"]["allow"] if v.startswith("Bash(")]), 2
+        )
         self.assertIn("mcp__*", config["permissions"]["deny"])
         self.assertTrue(config["hooks"]["PreToolUse"])
         self.assertFalse((self.root / ".claude/settings.json").exists())
@@ -142,3 +152,19 @@ class CliTests(ToolkitFixture):
         self.assertIn(
             "disposition: pending", (self.root / "research/reviews/REV-002.yaml").read_text()
         )
+
+    def test_generated_profiles_are_ignored_on_install_and_update(self):
+        self.cli("permissions", "--runtime", "claude", "--role", "verifier")
+        subprocess.run(["git", "init", "-q", str(self.root)], check=True)
+        profile = ".research-toolkit/permissions/verifier.claude.json"
+        result = subprocess.run(
+            ["git", "-C", str(self.root), "check-ignore", profile], capture_output=True, text=True
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        ignore = self.root / ".gitignore"
+        ignore.write_text(ignore.read_text().replace(".research-toolkit/permissions/\n", ""))
+        self.init("--update")
+        result = subprocess.run(
+            ["git", "-C", str(self.root), "check-ignore", profile], capture_output=True, text=True
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)

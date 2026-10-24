@@ -73,3 +73,18 @@ synthetic review fixtures.
 GitHub-hosted CI results and live Codex/Claude role-profile enforcement still
 require separate confirmation. No thesis pilot, external signing service, remote
 branch-protection change, PyPI publication, or model session was performed.
+
+## V3 review follow-up (unreleased)
+
+The follow-up passed **94 regression tests on Python 3.13.16**, both in an
+editable installation and in an isolated environment containing only validation
+and property-test dependencies, without installing DevResearchFlow. New checks
+cover checked experiment transitions, unchanged files after rejected operations,
+draft pin writes, ignored local profiles, automatic environment evidence and
+its tamper detection, exact verifier commands, and completed-example status.
+
+Ruff lint/format, expanded mypy (seven source files, including the validator and
+record helper), shell syntax, state-diagram consistency and Git whitespace checks
+passed. Source and wheel distributions built; a clean wheel environment outside
+the checkout passed initialization, advance/pin help, record validation and status.
+Live runtime profiles, hosted CI and a real thesis pilot remain unverified.

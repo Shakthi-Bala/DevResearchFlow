@@ -56,8 +56,18 @@ drf review REV-002 --type protocol --supersedes REV-001 \
 ```
 
 This creates a pending replacement, marks the original superseded, and retains its
-findings/narrative. Update the experiment's required review link after actual review.
-Commit intermediate gates so Git history retains each transition.
+findings/narrative. After actual review, link it and validate the gate with:
+
+```bash
+drf advance EXP-001 protocol_reviewed --review REV-002
+# Commit this gate before advancing again.
+```
+
+`advance` rejects missing, draft, stale, wrong-target, blocking or self-session
+reviews through the same reference and policy checks as `drf check`. It writes only
+a valid next experiment transition, preserves Markdown narrative, and never grants
+review approval. Use `--review REV-NNN` for `implementation_reviewed` too. It checks
+Git history against HEAD so uncommitted intermediate gates cannot be skipped.
 
 Commit reviewed implementation/configuration, then print the pinning fields:
 
@@ -65,8 +75,13 @@ Commit reviewed implementation/configuration, then print the pinning fields:
 drf pin research/experiments/EXP-001.yaml
 ```
 
-Copy the fields into the draft before applicable reviews. Pinning refuses dirty
-implementation/configuration and does not edit the record. The runner requires
+Add `--write` to update the draft directly. Without it, the command prints fields.
+Pinning refuses dirty implementation/configuration and requires draft status.
+If returning from protocol_reviewed to draft, use `drf advance EXP-001 draft` and
+commit that gate first; then pin, advance through the protocol gate and commit it.
+Protocol hashes exclude implementation pins, so unchanged protocols can retain
+their current supporting protocol review. Obtain a fresh implementation review.
+The runner requires
 fully committed code without an uncommitted patch.
 
 ## Dataset manifests
@@ -107,6 +122,12 @@ Research records, run evidence and the installed toolkit are excluded from the c
 tree comparison. Ignored environments and external tools are not hermetically pinned.
 Use explicit absolute interpreter paths when environment selection matters.
 
+Before launch, the runner writes `environment-captured.json` with interpreter and
+package details, GPU/driver probe, platform and selected environment variables.
+It records a separate probe for direct Python commands and explicit unavailability
+for missing probes or wrapper commands. The file is a receipt-covered artifact;
+the supplied environment/device description is supplementary context.
+
 The runner captures stdout/stderr, start/finish times, real exit code, outputs and
 checksums; atomically finalizes the manifest and writes execution receipts. Timeouts,
 launch failures and interruption retain available evidence. A zero-exit command with
@@ -128,6 +149,15 @@ Receipts are checksummed local evidence, not signed attestation against a reposi
 owner. Confirmatory supported claims must declare `mode: confirmatory` and cite
 run-backed preregistered evidence. Exploratory claims cannot be promoted directly;
 define a new prospective protocol and claim.
+
+## Experiment progress
+
+After a run starts, use `drf advance EXP-001 executing` and commit. Once all linked
+runs are terminal (including failed/cancelled runs), use
+`drf advance EXP-001 completed` and commit. Each transition is checked independently.
+`drf status` follows linked runs, observations, claims, current evidence reviews
+and decisions to suggest a concrete next action. Existing accepted decisions are
+reported as complete; validation errors remain blockers.
 
 ## Hooks and project CI
 

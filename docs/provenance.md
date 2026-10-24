@@ -85,3 +85,18 @@ See [GitHub's protected-branch documentation](https://docs.github.com/en/reposit
 
 A passing CI check validates recorded structure and provenance. Independent review
 and the principal investigator still assess the scientific conclusion.
+
+## Automatically captured environment
+
+Each new execution writes `runs/RUN-NNN/environment-captured.json` before launch
+and includes it in `artifacts` and both execution receipts. It captures runner
+Python path/version and installed distributions, the resolved command executable,
+platform, GPU names/UUIDs/driver via `nvidia-smi`, and CUDA visibility, hash seed,
+thread-count and cuBLAS variables. Missing GPU tools and timed-out probes are
+recorded explicitly. Only the selected variables are saved, not the entire environment.
+
+Direct Python commands are also probed for their own interpreter and packages;
+wrapper scripts and non-Python commands are labeled as unprobed. The runner's
+packages alone do not describe a subprocess using a different environment.
+User-supplied environment and device fields remain useful supplementary context.
+Existing receipts remain valid; historical captures cannot be reconstructed.

@@ -58,9 +58,29 @@ def allowed(root: Path, role: str, filename: str) -> bool:
     )
 
 
+def verifier_commands(root: Path) -> list[str]:
+    prefix = "cd " + shlex.quote(str(root)) + " && "
+    return [
+        prefix
+        + shlex.join(
+            [sys.executable, str(root / ".research-toolkit/checks/validate_records.py"), str(root)]
+        ),
+        prefix
+        + shlex.join(
+            [sys.executable, "-m", "pytest", "-p", "no:cacheprovider", "tests/verification"]
+        ),
+    ]
+
+
 def guard(root: Path, role: str) -> int:
     event = json.load(sys.stdin)
     tool = event.get("tool_name")
+    if (
+        tool == "Bash"
+        and role == "verifier"
+        and event.get("tool_input", {}).get("command") in verifier_commands(root)
+    ):
+        return 0
     if tool in READ_TOOLS:
         return 0
     if tool in {"Edit", "Write", "MultiEdit", "NotebookEdit"}:
@@ -118,6 +138,9 @@ def main() -> int:
                 for area in AREAS[role]
             ],
         }
+        if role == "verifier":
+            permissions["deny"].remove("Bash")
+            permissions["allow"].extend(f"Bash({command})" for command in verifier_commands(root))
         text = (
             json.dumps(
                 {

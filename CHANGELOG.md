@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Allow exact validation and verification-test commands in the Claude verifier
+  profile; document the trust boundary of Python execution.
+- Ignore generated machine-local permission profiles during initialization/update.
+- Capture interpreter, packages, GPU/driver and selected environment variables in
+  receipt-covered run artifacts, including failed and cancelled executions.
+- Add checked `drf advance EXP-NNN STATUS --review REV-NNN` and draft `pin --write`.
+- Derive status guidance from linked runs, observations, evidence reviews and decisions.
+- Make checkout CLI tests use `src/`; extend mypy to validator and record helper.
+
 ## 0.3.0
 
 - Package the toolkit as `drf`, installable from a checkout or built wheel using

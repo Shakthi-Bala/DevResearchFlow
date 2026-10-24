@@ -8,10 +8,14 @@ import hashlib
 import json
 import math
 import os
+import platform
 import re
+import shutil
 import signal
 import subprocess
+import sys
 from datetime import datetime, timezone
+from importlib.metadata import distributions
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +24,75 @@ from provenance import VERSION, manifest_hash, registration, verify_dataset
 from record_helper import output
 from records import load_records, local_path, parse, sha256, yaml
 from validate_records import policy_errors
+
+
+def capture_environment(root: Path, record: dict[str, Any]) -> dict[str, str]:
+    """Capture the runner and explicitly identified Python command environment."""
+
+    def probe(command: list[str]) -> dict[str, Any]:
+        try:
+            result = subprocess.run(command, cwd=root, capture_output=True, text=True, timeout=15)
+            return {
+                "command": command,
+                "exit_code": result.returncode,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+            }
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            return {"command": command, "unavailable": str(exc)}
+
+    executable = record["command"][0]
+    resolved = shutil.which(executable)
+    captured: dict[str, Any] = {
+        "format_version": 1,
+        "captured_at": now(),
+        "runner": {
+            "executable": sys.executable,
+            "version": sys.version,
+            "packages": sorted(
+                ({"name": d.metadata["Name"] or "", "version": d.version} for d in distributions()),
+                key=lambda d: (d["name"], d["version"]),
+            ),
+        },
+        "platform": platform.platform(),
+        "command_executable": {"requested": executable, "resolved": resolved},
+        "variables": {
+            key: os.environ.get(key)
+            for key in (
+                "CUDA_VISIBLE_DEVICES",
+                "NVIDIA_VISIBLE_DEVICES",
+                "PYTHONHASHSEED",
+                "OMP_NUM_THREADS",
+                "MKL_NUM_THREADS",
+                "CUBLAS_WORKSPACE_CONFIG",
+            )
+        },
+        "gpu": probe(
+            [
+                "nvidia-smi",
+                "--query-gpu=name,uuid,driver_version,memory.total",
+                "--format=csv,noheader",
+            ]
+        ),
+    }
+    if re.fullmatch(r"python(?:[0-9]+(?:\.[0-9]+)*)?", Path(executable).name):
+        captured["command_python"] = probe(
+            [
+                executable,
+                "-c",
+                "import sys,json,importlib.metadata as m; print(json.dumps({'executable':sys.executable,'version':sys.version,'packages':sorted([(d.metadata['Name'] or '',d.version) for d in m.distributions()])}))",
+            ]
+        )
+    else:
+        captured["command_python"] = {
+            "unavailable": "command is not a direct Python interpreter; runner packages may differ"
+        }
+    relative = f"runs/{record['id']}/environment-captured.json"
+    path = output(root, relative)
+    with path.open("x") as stream:
+        json.dump(captured, stream, indent=2)
+        stream.write("\n")
+    return {"path": relative, "sha256": sha256(path)}
 
 
 def now() -> str:
@@ -196,6 +269,7 @@ def execute(root: Path, rid: str, metrics: str, artifacts: list[str], timeout: f
             "protocol.yaml",
             "config_resolved.yaml",
             "environment.txt",
+            "environment-captured.json",
         } or Path(name).name.startswith((".execution", "execution-", ".manifest-")):
             raise ValueError("declared output conflicts with reserved execution evidence")
         dest = output(run_dir, name)
@@ -215,6 +289,8 @@ def execute(root: Path, rid: str, metrics: str, artifacts: list[str], timeout: f
     with lock.open("x") as stream:
         json.dump({"pid": os.getpid(), "started_at": now()}, stream)
     record["command"] = [arg.replace("{run_dir}", f"runs/{rid}") for arg in record["command"]]
+    captured_environment = capture_environment(root, record)
+    record["artifacts"] = [captured_environment]
     record.update(status="started", started_at=now(), origin="measured")
     process: subprocess.Popen[bytes] | None = None
     interrupted = False
@@ -264,7 +340,7 @@ def execute(root: Path, rid: str, metrics: str, artifacts: list[str], timeout: f
         if interrupted
         else ("completed" if code == 0 and not reason else "failed"),
     )
-    record["artifacts"] = []
+    record["artifacts"] = [captured_environment]
     for index, dest in enumerate(outputs):
         if dest.is_file() and not dest.is_symlink():
             artifact = {"path": dest.relative_to(root).as_posix(), "sha256": sha256(dest)}
@@ -279,6 +355,8 @@ def execute(root: Path, rid: str, metrics: str, artifacts: list[str], timeout: f
         if checked_code_tree(root, record["code_revision"]) != tree:
             raise ValueError("reviewed inputs changed during execution")
         verify_dataset(root, record["dataset"])
+        if sha256(local_path(root, captured_environment["path"])) != captured_environment["sha256"]:
+            raise ValueError("captured environment changed during execution")
         for field in ("protocol_snapshot", "configuration", "environment"):
             if sha256(local_path(root, record[field]["path"])) != record[field]["sha256"]:
                 raise ValueError(f"captured {field} changed during execution")
