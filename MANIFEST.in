@@ -1,4 +1,4 @@
-include README.md CHANGELOG.md LICENSE pyproject.toml
+include README.md CHANGELOG.md CONTRIBUTING.md SECURITY.md LICENSE pyproject.toml
 include install.sh bin/research-init bin/graphify-init
 include templates/graphifyignore
 recursive-include docs *.md *.svg *.gif

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Usage and first experiment
+    url: https://github.com/Shakthi-Bala/DevResearchFlow/blob/dev/docs/first-experiment.md
+    about: Start here for installation and the complete research workflow.
+  - name: Security policy
+    url: https://github.com/Shakthi-Bala/DevResearchFlow/blob/dev/SECURITY.md
+    about: Read how to report sensitive issues privately.

@@ -1,0 +1,23 @@
+name: Feature request
+description: Suggest an improvement to the research workflow or toolkit.
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Research or development problem
+      description: Describe the concrete workflow and where it becomes difficult.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Include an example command or record when useful.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and tradeoffs
+      description: Consider evidence preservation, review gates, and compatibility with existing projects.

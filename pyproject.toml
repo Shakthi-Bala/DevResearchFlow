@@ -10,6 +10,17 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 authors = [{name = "DevResearchFlow contributors"}]
+keywords = ["research", "reproducibility", "ai-agents", "experiments", "provenance"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+]
 dependencies = ["PyYAML>=6,<7", "jsonschema>=4.23,<5"]
 
 [project.optional-dependencies]
@@ -21,6 +32,9 @@ drf = "devresearchflow.cli:main"
 
 [project.urls]
 Repository = "https://github.com/Shakthi-Bala/DevResearchFlow"
+Documentation = "https://github.com/Shakthi-Bala/DevResearchFlow/blob/dev/docs/first-experiment.md"
+Changelog = "https://github.com/Shakthi-Bala/DevResearchFlow/blob/dev/CHANGELOG.md"
+Issues = "https://github.com/Shakthi-Bala/DevResearchFlow/issues"
 
 [tool.setuptools]
 packages = ["devresearchflow", "devresearchflow.toolkit", "devresearchflow.toolkit.checks"]

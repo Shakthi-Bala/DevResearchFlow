@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add CI, version-tag, Python and license badges, a capability overview and a
+  runnable demo guide to the README.
+- Add contribution and security guidance, structured issue forms, and a pull
+  request template; enrich Python package discovery and documentation metadata.
+
 - Allow exact validation and verification-test commands in the Claude verifier
   profile; document the trust boundary of Python execution.
 - Ignore generated machine-local permission profiles during initialization/update.
