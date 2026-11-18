@@ -1,0 +1,44 @@
+name: Bug report
+description: Report a reproducible CLI, validation, or installation problem.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use synthetic examples. Remove credentials and private research data.
+        For sensitive vulnerabilities, follow SECURITY.md instead of this form.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Include `drf --version` and the installed project toolkit version if different.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: OS, Python version, installation method
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Commands and the smallest synthetic record or project that reproduces the problem.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and sanitized output
+      render: text
+    validations:
+      required: true
